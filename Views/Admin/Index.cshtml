@@ -1,0 +1,71 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using ToyCollection.Areas.Identity.Data;
+@using ToyCollection.Models;
+
+@inject SignInManager<UserModel> SignInManager
+@inject UserManager<UserModel> UserManager
+
+@{
+    ViewData["Title"] = "Admin Page";
+}
+@model List<UserViewModel>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<h1>Users</h1>
+@if (@Model.Count > 0)
+{
+    <form asp-controller="Admin">
+        <div class="d-flex align-items-center m-2">
+            <button class="btn btn-danger" asp-action="DeleteUser" type="submit"><i class="fa fa-trash"></i></button>
+            <button class="btn btn-warning mx-2" asp-action="BlockUser" type="submit"><i class="fa fa-lock"></i></button>
+            <button class="btn btn-success" asp-action="UnblockUser" type="submit"><i class="fa fa-unlock-alt"></i></button>
+            <button class="btn btn-success mx-2" asp-action="GrantAdmin" type="submit">Дать права администратора</button>
+            <button class="btn btn-warning" asp-action="RevokeAdmin" type="submit">Забрать права администратора</button>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="mainSwitcher" /></th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td><input type="checkbox" name="userId" value="@user.Id" /></td>
+                        <td>@user.Id</td>
+                        <td>@user.UserName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            @if (user.IsBlocked)
+                            {
+                                <div class="text-danger">blocked</div>
+                            }
+                            else
+                            {
+                                <div class="text-success">active</div>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var role in @user.Roles)
+                            {
+                                <div>@role</div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </form>
+}
+else
+{
+    <p>There is no users yet</p>
+}
