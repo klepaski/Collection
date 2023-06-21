@@ -1,0 +1,266 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using ToyCollection.Areas.Identity.Data;
+@using ToyCollection.Models;
+
+@{
+    List<Theme> themes = ViewBag.Themes;
+    List<string> customFields = new() { 
+        "CustomString1", "CustomString2", "CustomString3",
+        "CustomInt1", "CustomInt2", "CustomInt3", 
+        "CustomText1", "CustomText2", "CustomText3", 
+        "CustomBool1", "CustomBool2", "CustomBool3", 
+        "CustomDate1", "CustomDate2", "CustomDate3" };
+
+    ViewData["Title"] = "My collections";
+}
+@model List<Collection>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.13/signalr.min.js"></script>
+
+<h1>My collections</h1>
+@if (@Model.Count == 0)
+{
+    <p>You haven't created any collection yet</p>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th style="width: 10%">Image</th>
+            <th style="width: 10%">Name</th>
+            <th style="width: 20%">Description</th>
+            <th style="width: 10%">Theme</th>
+            <th style="width: 43%">Custom Fields</th>
+            <th style="width: 7%">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (@Model.Count > 0)
+        {
+            @foreach (var collection in Model)
+            {
+                <tr>
+                    <td>
+                        @{ string url = (collection.ImageUrl != null) ? collection.ImageUrl : "/bear.png"; }
+                        <div><img src="@url" id="pic-@collection.Id" class="collectionPic" /></div>
+                    </td>
+                    <td>
+                        <a href="/User/Items?id=@collection.Id"><span class="editable">@collection.Name</span></a>
+                        <input type="text" class="form-coll" value="@collection.Name" style="display:none;" />
+                    </td>
+                    <td>
+                        <span class="editable">@collection.Description</span>
+                        <textarea type="text" class="text-coll" style="display:none;">@collection.Description</textarea>
+                    </td>
+                    <td>
+                        <span class="editable">@collection.Theme</span>
+                        <select name="theme" required style="display:none;" value="@collection.Theme">
+                            @foreach (var theme in themes)
+                            {
+                                <option value="@theme.Name">@theme.Name</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div>String: </div>
+                                <div>Number: </div>
+                                <div>Text: </div>
+                                <div>Yes/No: </div>
+                                <div>Date: </div>
+                            </div>
+                            <div class="row col-md-9">
+                                @foreach (var field in customFields)
+                                {
+                                    <div class="editable col-md-4">@collection[@field]</div>
+                                    <input type="text" class="form-coll-custom col-md-4" value="@collection[@field]" style="display:none;" />
+                                }
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-warning edit-collection"><i class="fa fa-pencil"></i></button>
+                        <button class="btn btn-success save-changes" style="display:none;"><i class="fa fa-check"></i></button>
+                        <form asp-controller="User">
+                            <input type="hidden" name="collectionId" value="@collection.Id" />
+                            <button class="btn btn-danger delete-collection" asp-action="DeleteCollection" type="submit"><i class="fa fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+
+        <tr>
+            <form asp-controller="User">
+                <td></td>
+                <td><input type="text" name="Name" placeholder="Name" class="form-coll" required/></td>
+                <td><textarea type="text" name="Description" placeholder="Description" class="text-coll" required></textarea></td>
+                <td>
+                    <select name="Theme" required>
+                        <option value="">Theme</option>
+                        @foreach (var theme in themes)
+                        {
+                            <option value="@theme.Name">@theme.Name</option>
+                        }
+                    </select>
+                </td>
+                <td>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div>String: </div>
+                        <div>Number: </div>
+                        <div>Text: </div>
+                        <div>Yes/No: </div>
+                        <div>Date: </div>
+                    </div>
+                    <div class="row col-md-9">
+                        @foreach (var field in customFields)
+                        {
+                            <input type="text" class="form-coll-custom col-md-4" name="@field" />
+                        }
+                    </div>
+                </div>
+                </td>
+                <td><button class="btn btn-success" asp-action="CreateCollection" type="submit"><i class="fa fa-plus"></i></button></td>
+            </form>
+        </tr>
+    </tbody>
+</table>
+
+<div id="upload-modal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Upload Image</h4>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="upload-form" enctype="multipart/form-data">
+                    <input type="file" name="file" id="file" accept="image/*">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="upload-button">Upload</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    $('.collectionPic').click(function () {
+        var row = $(this).closest('tr');
+        var collectionId = row.find('input[name="collectionId"]').val();
+        $('#upload-modal').modal('show');
+        $('#upload-button').unbind('click').click(function () {
+            var formData = new FormData($('#upload-form')[0]);
+            $.ajax({
+                url: '/User/UploadImage/' + collectionId,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (result) {
+                    $('#pic-' + collectionId).attr('src', result);
+                    $('#upload-modal').modal('hide');
+                },
+                error: function () {
+                    alert('Error uploading image.');
+                }
+            });
+        });
+    });
+
+
+    $('.edit-collection').click(function () {
+        var row = $(this).closest('tr');
+        row.find('.editable').hide();
+        row.find('input').show();
+        row.find('select').show();
+        row.find('textarea').show();
+        $(this).hide();
+        row.find('.save-changes').show();
+        row.find('.delete-collection').hide();
+    });
+
+    $('.save-changes').click(function () {
+        var row = $(this).closest('tr');
+        var collectionId = row.find('input[name="collectionId"]').val();
+        var name = row.find('input:eq(0)').val();
+        var description = row.find('textarea').val();
+        var theme = row.find('select').val();
+        var customString1 = row.find('input:eq(1)').val();
+        var customString2 = row.find('input:eq(2)').val();
+        var customString3 = row.find('input:eq(3)').val();
+        var customInt1 = row.find('input:eq(4)').val();
+        var customInt2 = row.find('input:eq(5)').val();
+        var customInt3 = row.find('input:eq(6)').val();
+        var customText1 = row.find('input:eq(7)').val();
+        var customText2 = row.find('input:eq(8)').val();
+        var customText3 = row.find('input:eq(9)').val();
+        var customBool1 = row.find('input:eq(10)').val();
+        var customBool2 = row.find('input:eq(11)').val();
+        var customBool3 = row.find('input:eq(12)').val();
+        var customDate1 = row.find('input:eq(13)').val();
+        var customDate2 = row.find('input:eq(14)').val();
+        var customDate3 = row.find('input:eq(15)').val();
+
+        $.ajax({
+            url: '/User/EditCollection',
+            type: 'POST',
+            data: {
+                id: collectionId,
+                name: name,
+                description: description,
+                theme: theme,
+                customString1: customString1,
+                customString2: customString2,
+                customString3: customString3,
+                customInt1: customInt1,
+                customInt2: customInt2,
+                customInt3: customInt3,
+                customText1: customText1,
+                customText2: customText2,
+                customText3: customText3,
+                customBool1: customBool1,
+                customBool2: customBool2,
+                customBool3: customBool3,
+                customDate1: customDate1,
+                customDate2: customDate2,
+                customDate3: customDate3
+            },
+            success: function () {
+                row.find('.editable:eq(0)').text(name);
+                row.find('.editable:eq(1)').text(description);
+                row.find('.editable:eq(2)').text(theme);
+                row.find('.editable:eq(3)').text(customString1);
+                row.find('.editable:eq(4)').text(customString2);
+                row.find('.editable:eq(5)').text(customString3);
+                row.find('.editable:eq(6)').text(customInt1);
+                row.find('.editable:eq(7)').text(customInt2);
+                row.find('.editable:eq(8)').text(customInt3);
+                row.find('.editable:eq(9)').text(customText1);
+                row.find('.editable:eq(10)').text(customText2);
+                row.find('.editable:eq(11)').text(customText3);
+                row.find('.editable:eq(12)').text(customBool1);
+                row.find('.editable:eq(13)').text(customBool2);
+                row.find('.editable:eq(14)').text(customBool3);
+                row.find('.editable:eq(15)').text(customDate1);
+                row.find('.editable:eq(16)').text(customDate2);
+                row.find('.editable:eq(17)').text(customDate3)
+                row.find('.editable').show();
+                row.find('input').hide();
+                row.find('select').hide();
+                row.find('textarea').hide();
+                row.find('.save-changes').hide();
+                row.find('.edit-collection').show();
+                row.find('.delete-collection').show();
+            }
+        });
+    });
+</script>

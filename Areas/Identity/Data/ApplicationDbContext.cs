@@ -53,62 +53,52 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
         : base(options)
     {
     }
+    public DbSet<Item> Items { get; set; } = null!;
+    public DbSet<Tag> Tags { get; set; } = null!;
+    public DbSet<Comment> Comments { get; set; } = null!;
+    public DbSet<Like> Likes { get; set; } = null!;
+    public DbSet<Collection> Collections { get; set; } = null!;
+    public DbSet<Theme> Themes { get; set; } = null!;
 
-    public DbSet<Collection> Collections { get; set; }
-    public DbSet<Item> Items { get; set; }
-    public DbSet<ItemField> ItemFields { get; set; }
-    public DbSet<Field> Fields { get; set; }
-    public DbSet<Comment> Comments { get; set; }
-    public DbSet<Like> Likes { get; set; }
-    public DbSet<Tag> Tags { get; set; }
-    public DbSet<ItemTag> ItemTags { get; set; }
+    //public DbSet<ItemField> ItemFields { get; set; }
+    //public DbSet<Field> Fields { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
-        modelBuilder.ApplyConfiguration(new ApplicationUserEntityConfiguration());
-        
-        modelBuilder.Entity<ItemField>()
-            .HasKey(x => new { x.ItemId, x.FieldId });
+        builder.ApplyConfiguration(new ApplicationUserEntityConfiguration());
 
-        modelBuilder.Entity<ItemField>()
-            .HasOne(x => x.Item)
-            .WithMany(x => x.ItemFields)
-            .HasForeignKey(x => x.ItemId);
+        builder.Entity<Theme>().
+            HasKey(x => x.Name);
+        //builder.Entity<ItemField>()
+        //    .HasKey(x => new { x.ItemId, x.FieldId });
 
-        modelBuilder.Entity<ItemField>()
-            .HasOne(x => x.Field)
-            .WithMany()
-            .HasForeignKey(x => x.FieldId);
+        //builder.Entity<ItemField>()
+        //    .HasOne(x => x.Item)
+        //    .WithMany(x => x.ItemFields)
+        //    .HasForeignKey(x => x.ItemId);
 
-        modelBuilder.Entity<Field>()
-            .HasOne(x => x.Collection)
-            .WithMany(x => x.Fields)
-            .HasForeignKey(x => x.CollectionId);
+        //builder.Entity<ItemField>()
+        //    .HasOne(x => x.Field)
+        //    .WithMany()
+        //    .HasForeignKey(x => x.FieldId);
 
-        modelBuilder.Entity<Comment>()
-            .HasOne(x => x.Item)
-            .WithMany(x => x.Comments)
-            .HasForeignKey(x => x.ItemId);
+        //builder.Entity<Field>()
+        //    .HasOne(x => x.Collection)
+        //    .WithMany(x => x.Fields)
+        //    .HasForeignKey(x => x.CollectionId);
 
-        modelBuilder.Entity<Like>()
-            .HasOne(x => x.Item)
-            .WithMany(x => x.Likes)
-            .HasForeignKey(x => x.ItemId);
+        //builder.Entity<Comment>()
+        //    .HasOne(x => x.Item)
+        //    .WithMany(x => x.Comments)
+        //    .HasForeignKey(x => x.ItemId);
 
-        modelBuilder.Entity<ItemTag>()
-            .HasKey(x => new { x.ItemId, x.TagId });
+        //builder.Entity<Like>()
+        //    .HasOne(x => x.Item)
+        //    .WithMany(x => x.Likes)
+        //    .HasForeignKey(x => x.ItemId);
 
-        modelBuilder.Entity<ItemTag>()
-            .HasOne(x => x.Item)
-            .WithMany(x => x.ItemTags)
-            .HasForeignKey(x => x.ItemId);
-
-        modelBuilder.Entity<ItemTag>()
-            .HasOne(x => x.Tag)
-            .WithMany(x => x.ItemTags)
-            .HasForeignKey(x => x.TagId);
     }
 }
 

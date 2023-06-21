@@ -26,7 +26,24 @@ namespace ToyCollection.Controllers
         public IActionResult Index()
         {
             List<UserViewModel> users = _userService.GetUsers();
+            ViewBag.Themes = _userService.GetThemes();
             return View(users.ToList());
+        }
+
+        [HttpPost]
+        public IActionResult AddTheme()
+        {
+            var theme = HttpContext.Request.Form["theme"];
+            _userService.AddTheme(theme);
+            return RedirectPermanent("~/Admin/Index");
+        }
+
+        [HttpPost]
+        public IActionResult DeleteTheme()
+        {
+            var name = HttpContext.Request.Form["themeName"];
+            _userService.DeleteTheme(name);
+            return RedirectPermanent("~/Admin/Index");
         }
 
         [HttpPost]
@@ -49,7 +66,7 @@ namespace ToyCollection.Controllers
         public IActionResult RevokeAdmin()
         {
             var ids = HttpContext.Request.Form["userId"];
-            _userService.RevokeAdmin(ids);
+            _userService.RevokeAdmin(ids, HttpContext.User);
             return RedirectPermanent("~/Admin/Index");
         }
 

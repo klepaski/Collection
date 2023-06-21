@@ -3,15 +3,19 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ToyCollection.Areas.Identity.Data;
 using ToyCollection.Models;
+using static Dropbox.Api.Files.ListRevisionsMode;
 
 namespace ToyCollection.Services
 {
     public interface IUserService
     {
         public List<UserViewModel> GetUsers();
+        public List<Theme> GetThemes();
+        public void AddTheme(string name);
+        public void DeleteTheme(string name);
         public void BlockUsers(string[] ids, ClaimsPrincipal userPrincipal);
         public void GrantAdmin(string[] ids);
-        public void RevokeAdmin(string[] ids);
+        public void RevokeAdmin(string[] ids, ClaimsPrincipal userPrincipal);
         public void UnblockUsers(string[] ids);
         public void DeleteUsers(string[] ids, ClaimsPrincipal userPrincipal);
         public bool IsUserBlocked(string email);
@@ -37,6 +41,31 @@ namespace ToyCollection.Services
             _signInManager = signInManager;
             _roleManager = roleManager;
         }
+
+        // THEMES----------------------------------------
+
+        public List<Theme> GetThemes()
+        {
+            return _db.Themes.ToList();
+        }
+
+        public void AddTheme(string name)
+        {
+            Theme? theme = _db.Themes.FirstOrDefault(x => x.Name.Equals(name));
+            if (theme != null) return;
+            _db.Themes.Add(new Theme() { Name = name });
+            _db.SaveChanges();
+        }
+
+        public void DeleteTheme(string name)
+        {
+            Theme? theme = _db.Themes.FirstOrDefault(x => x.Name.Equals(name));
+            if (theme == null) return;
+            _db.Remove(theme);
+            _db.SaveChanges();
+        }
+
+        // USERS---------------------------------------------
 
         public List<UserViewModel> GetUsers()
         {
@@ -70,7 +99,7 @@ namespace ToyCollection.Services
             _db.SaveChanges();
         }
 
-        public void RevokeAdmin(string[] ids)
+        public void RevokeAdmin(string[] ids, ClaimsPrincipal userPrincipal)
         {
             foreach (var id in ids)
             {
@@ -79,6 +108,7 @@ namespace ToyCollection.Services
                 IdentityUserRole<string>? userRole = _db.UserRoles.Find(user.Id, role.Id);
                 if (userRole == null) continue;
                 _db.Remove(userRole);
+                LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
             }
             _db.SaveChanges();
         }

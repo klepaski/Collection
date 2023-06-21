@@ -25,6 +25,8 @@ builder.Services.Configure<IdentityOptions>(opts =>
 });
 
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<ICollectionService, CollectionService>();
+//builder.Services.AddTransient<IImageService, ImageService>();
 
 builder.Services.AddControllersWithViews();
 
