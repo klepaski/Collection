@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ToyCollection.Areas.Identity.Data;
 using ToyCollection.Services;
+using ToyCollection.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR();
 
 var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection") ?? throw new InvalidOperationException("Connection string 'ApplicationDbContextConnection' not found.");
 
@@ -25,8 +28,7 @@ builder.Services.Configure<IdentityOptions>(opts =>
 });
 
 builder.Services.AddTransient<IUserService, UserService>();
-builder.Services.AddTransient<ICollectionService, CollectionService>();
-//builder.Services.AddTransient<IImageService, ImageService>();
+builder.Services.AddTransient<IDropboxService, DropboxService>();
 
 builder.Services.AddControllersWithViews();
 
@@ -78,5 +80,7 @@ using (var scope = app.Services.CreateScope())
         await userManager.AddToRoleAsync(user, "User");
     }
 }
+
+app.MapHub<CommentHub>("/Comment");
 
 app.Run();

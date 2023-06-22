@@ -1,25 +1,19 @@
-﻿@using Microsoft.AspNetCore.Identity;
-@using ToyCollection.Areas.Identity.Data;
-@using ToyCollection.Models;
-
-@{
+﻿@{
     string collectionId = ViewBag.CollectionId;
     List<Item> items = ViewBag.Items;
+    string collectionName = ViewBag.CollectionName;
     Dictionary<string, string> customFields = ViewBag.CustomFields;
     ViewData["Title"] = "My items";
 }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.13/signalr.min.js"></script>
-
-<h1>My items</h1>
+<h1>My items from collection <a href="/User/Index">@collectionName</a></h1>
 @if (@items.Count == 0)
 {
     <p>You haven't created any items yet</p>
 }
 
-<table class="table">
+<input class="form-control" id="myInput" type="text" placeholder="Search..."><br/>
+<table class="table sortable">
     <thead>
         <tr>
             <th>Name</th>
@@ -28,7 +22,7 @@
             {
                 <th>@field.Value</th>
             }
-            <th>Actions</th>
+            <th data-defaultsort='disabled'>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -36,9 +30,9 @@
         {
             @foreach (var item in items)
             {
-                <tr>
+                <tr class="searchable">
                     <td>
-                        <span class="editable">@item.Name</span>
+                        <span class="editable"><a href="/Home/Item?itemId=@item.Id">@item.Name</a></span>
                         <input type="text" class="ans form-coll" value="@item.Name" style="display:none;" />
                     </td>
                     <td>
@@ -51,35 +45,36 @@
                         <td>
                             @if (field.Key.Contains("String"))
                             {
-                                <span class="editable">@item[@field.Key]</span>
+                                <span class="editable @field.Key">@item[@field.Key]</span>
                                 <input type="text" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
                             }
                             @if (field.Key.Contains("Int"))
                             {
-                                <span class="editable">@item[@field.Key]</span>
+                                <span class="editable @field.Key">@item[@field.Key]</span>
                                 <input type="number" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
                             }
                             @if (field.Key.Contains("Text"))
                             {
-                                <span class="editable">@item[@field.Key]</span>
+                                <span class="editable @field.Key">@item[@field.Key]</span>
                                 <textarea type="text" class="ans text-coll" id="@field.Key" style="display:none;">@item[@field.Key]</textarea>
                             }
                             @if (field.Key.Contains("Bool"))
                             {
                                 @if (@item[@field.Key].ToString() == "True")
                                 {
-                                    <span class="editable">Yes</span>
+                                    <span class="editable @field.Key">Yes</span>
+                                    <input type="checkbox" checked class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
                                 }
                                 else
                                 {
-                                    <span class="editable">No</span>
+                                    <span class="editable @field.Key">No</span>
+                                    <input type="checkbox" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
                                 }
-                                <input type="checkbox" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
                             }
                             @if (field.Key.Contains("Date"))
                             {
-                                <span class="editable">@(item[@field.Key].ToString().Substring(0, 10))</span>
-                                <input type="date" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
+                                <span class="editable @field.Key">@Convert.ToDateTime(item[@field.Key]).ToString("yyyy-MM-dd")</span>
+                                <input type="date" class="ans form-coll" value="@Convert.ToDateTime(item[@field.Key]).ToString("yyyy-MM-dd")" id="@field.Key" style="display:none;" />
                             }
                         </td>
                     }
@@ -95,7 +90,7 @@
             }
         }
 
-        <tr>
+        <tr data-disablesort='true'>
             <form asp-controller="User">
                 <input type="hidden" name="collectionId" value="@collectionId" />
                 <td><input type="text" name="Name" placeholder="Name" class="form-coll" required/></td>
@@ -147,8 +142,7 @@
         var row = $(this).closest('tr');
         var itemId = row.find('input[name="itemId"]').val();
         var name = row.find('input:eq(0)').val();
-        var tags = row.find('textarea').val();
-        //var theme = row.find('select').val();
+        var tags = row.find('textarea').val();//
 
         var customString1 = row.find('#CustomString1').val();
         var customString2 = row.find('#CustomString2').val();
@@ -159,9 +153,9 @@
         var customText1 = row.find('#CustomText1').val();
         var customText2 = row.find('#CustomText2').val();
         var customText3 = row.find('#CustomText3').val();
-        var customBool1 = row.find('#CustomBool1').val();
-        var customBool2 = row.find('#CustomBool2').val();
-        var customBool3 = row.find('#CustomBool3').val();
+        var customBool1 = (row.find('#CustomBool1').is(':checked')) ? "on" : "off";
+        var customBool2 = (row.find('#CustomBool2').is(':checked')) ? "on" : "off";
+        var customBool3 = (row.find('#CustomBool3').is(':checked')) ? "on" : "off";
         var customDate1 = row.find('#CustomDate1').val();
         var customDate2 = row.find('#CustomDate2').val();
         var customDate3 = row.find('#CustomDate3').val();
@@ -172,12 +166,7 @@
             data: {
                 id: itemId,
                 name: name,
-                tags: tags,
-                //theme: theme,
-
-                //$( ".ans").each(function () {
-                //    this.attr('id'): this.val(),
-                //});
+                tags: tags,//
 
                 customString1: customString1,
                 customString2: customString2,
@@ -196,24 +185,24 @@
                 customDate3: customDate3
             },
             success: function () {
-                //row.find('.editable:eq(0)').text(name);
-                //row.find('.editable:eq(1)').text(description);
-                //row.find('.editable:eq(2)').text(theme);
-                //row.find('.editable:eq(3)').text(customString1);
-                //row.find('.editable:eq(4)').text(customString2);
-                //row.find('.editable:eq(5)').text(customString3);
-                //row.find('.editable:eq(6)').text(customInt1);
-                //row.find('.editable:eq(7)').text(customInt2);
-                //row.find('.editable:eq(8)').text(customInt3);
-                //row.find('.editable:eq(9)').text(customText1);
-                //row.find('.editable:eq(10)').text(customText2);
-                //row.find('.editable:eq(11)').text(customText3);
-                //row.find('.editable:eq(12)').text(customBool1);
-                //row.find('.editable:eq(13)').text(customBool2);
-                //row.find('.editable:eq(14)').text(customBool3);
-                //row.find('.editable:eq(15)').text(customDate1);
-                //row.find('.editable:eq(16)').text(customDate2);
-                //row.find('.editable:eq(17)').text(customDate3)
+                row.find('.editable:eq(0)').text(name);
+                //tags
+                row.find('.CustomString1').text(customString1);
+                row.find('.CustomString2').text(customString2);
+                row.find('.CustomString3').text(customString3)               
+                row.find('.CustomInt1').text(customInt1);
+                row.find('.CustomInt2').text(customInt2);
+                row.find('.CustomInt3').text(customInt3);
+                row.find('.CustomText1').text(customText1);
+                row.find('.CustomText2').text(customText2);
+                row.find('.CustomText3').text(customText3);             
+                row.find('.CustomBool1').text((customBool1 == "on") ? "Yes" : "No");
+                row.find('.CustomBool2').text((customBool2 == "on") ? "Yes" : "No");
+                row.find('.CustomBool3').text((customBool3 == "on") ? "Yes" : "No");
+                row.find('.CustomDate1').text(customDate1);
+                row.find('.CustomDate2').text(customDate2);
+                row.find('.CustomDate3').text(customDate3);
+
                 row.find('.editable').show();
                 row.find('input').hide();
                 row.find('textarea').hide();

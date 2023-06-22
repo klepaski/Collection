@@ -1,0 +1,201 @@
+﻿@{
+    Item? item = ViewBag.Item;
+    Collection? collection = ViewBag.Collection;
+    List<Comment> comments = ViewBag.Comments;
+    List<Like> likes = ViewBag.Likes;
+    Dictionary<string, string> customFields = ViewBag.CustomFields;
+    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    string? userName = User.FindFirstValue(ClaimTypes.Name);
+    bool isAuthorised = (User.IsInRole("User") || User.IsInRole("Admin")) ? true : false;
+
+    bool isLiked = false;
+    foreach (var like in likes)
+    {
+        if (like.User.Id == userId)
+        {
+            isLiked = true;
+            break;
+        }
+    };
+    ViewData["Title"] = $"Item {item.Name}";
+}
+
+<h1>Item @item.Name from collection @collection.Name</h1>
+<hr/>
+@if (@item == null)
+{
+    <p>This item doesn't exist</p>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        @{string url = (collection.ImageUrl != null) ? collection.ImageUrl : "/bear.png";}
+        <div style="aspect-ratio:1"><img src="@url" id="pic-@collection.Id" class="collectionPic" /></div>
+    </div>
+    <div class="col-md-8 row">
+        Name: @item.Name<br />
+        Tags: @item.Tags<br />@*ДОБАВИТЬ ТЭГИ*@
+        @foreach (var field in customFields)
+        {
+            <text>@field.Value: @item[@field.Key]</text>
+        }
+        @*Owner: @item.User.UserName<br/>*@
+        Collection: <a href="/">@collection.Name</a> <br /> @*ДОБАВИТЬ ССЫЛКУ НА ПРОСМОТР КОЛЛЕКЦИИ*@
+        
+        <div class="row">
+            <div id="like" class="heart">
+                @if (!User.IsInRole("Admin") && !User.IsInRole("User"))
+                {
+                    @*<i class="fa fa-heart-o" id="likeButton" disabled></i>*@
+                    <i class="fa fa-heart" id="dislikeButton" style="display:none"></i>
+                    <i class="fa fa-heart-o" id="likeButton"></i>
+                }
+                else
+                {
+                    @if (isLiked)
+                    {
+                        <i class="fa fa-heart" id="dislikeButton"></i>
+                        <i class="fa fa-heart-o" id="likeButton" style="display:none"></i>
+                    }
+                    else
+                    {
+                        <i class="fa fa-heart" id="dislikeButton" style="display:none"></i>
+                        <i class="fa fa-heart-o" id="likeButton"></i>
+                    }
+                }
+            </div>
+            <div id="likeCount">@likes.Count</div>
+        </div>
+
+        @if (User.IsInRole("Admin")) @*ДОБАВИТЬ ПРОВЕРКУ ХОЗЯИНА АЙТЕМА*@
+        {
+            <a class="btn btn-success" href="/User/Items?collectionId=@collection.Id">Edit item</a>
+        }
+    </div>
+</div>
+<hr/>
+<h3>Comments:</h3>
+<div id="comments">
+    @foreach (var comment in comments)
+    {
+        <div class="comment">
+            <h4>@comment.User.UserName</h4>
+            <h5>@comment.Text</h5>
+            <h5>@comment.Date</h5>
+            <hr/>
+        </div>
+    }
+</div>
+@if(User.IsInRole("Admin") || User.IsInRole("User"))
+{
+    <input type="text" id="newComment" />
+    <button type="button" class="btn btn-success" id="newCommentButton">Add comment</button>
+    <div id="notification"></div>
+}
+
+
+<div id="login-modal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">For this acton you must be logged in</h4>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Log in</a>
+                @*<button type="button" class="btn btn-primary" id="login-button">Log in</button>*@
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var connection = new signalR.HubConnectionBuilder().withUrl("/Comment").build();
+    var _likeCount = 0;
+
+    connection.on("ReceiveComment", function (userName, text, date) {
+        var newComment = `<div class="comment">
+                <h4>${userName}</h4>
+                <h5>${text}</h5>
+                <h5>${date}</h5>
+                <hr/>
+            </div>`
+        $("#comments").append(newComment);
+    });
+
+    $("#newCommentButton").click(function() {
+        var commentText = $("#newComment").val();
+        var date = new Date().toLocaleString('ru-RU', {
+            day: 'numeric',
+            month: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric'
+        });
+        $.ajax({
+            url: '/User/CreateComment',
+            type: 'POST',
+            data: {
+                itemId: "@item.Id",
+                userId: "@userId",
+                text: commentText,
+                date: date
+            },
+            success: function () {
+                connection.invoke("SendComment", "@userName", commentText, date);
+                $("#newComment").val("");
+                $("#notification").text("The comment was sent!");
+                setTimeout(() => $("#notification").text(""), 2000);
+            }
+        });
+    });
+
+    $("#likeButton").click(function () {
+        if (@isAuthorised) {
+            $('#login-modal').modal('show');
+        }
+        $.ajax({
+            url: '/User/LikeItem',
+            type: 'POST',
+            data: {itemId: "@item.Id", userId: "@userId"},
+            success: function () {
+                $("#likeButton").hide();
+                $("#dislikeButton").show();
+                _likeCount = _likeCount + 1;
+                connection.invoke("ChangeLikeCount", _likeCount);
+                //$("#like").html(`<i class="fa fa-heart" id="dislikeButton"></i>`);
+                $("#likeCount").text(_likeCount);
+            }
+        });
+    });
+
+    $("#dislikeButton").click(function () {
+        $.ajax({
+            url: '/User/DislikeItem',
+            type: 'POST',
+            data: { itemId: "@item.Id", userId: "@userId" },
+            success: function () {
+                $("#dislikeButton").hide();
+                $("#likeButton").show();
+                _likeCount = _likeCount - 1;
+                connection.invoke("ChangeLikeCount", _likeCount);
+                //$("#like").html(`<i class="fa fa-heart-o" id="likeButton"></i>`);
+                $("#likeCount").text(_likeCount);
+            }
+        });
+    });
+
+    connection.on("ReceiveLikeCount", function (likeCount) {
+        _likeCount = likeCount;
+        $("#likeCount").text(_likeCount);
+    });
+
+    connection.start().then(function () {
+        console.log("Connected!");
+        _likeCount = @likes.Count;
+    }).catch(function (err) {
+        console.error(err.toString());
+    });
+</script>

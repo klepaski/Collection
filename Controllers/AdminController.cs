@@ -6,7 +6,6 @@ using ToyCollection.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using NuGet.Packaging.Signing;
 using ToyCollection.Services;
-using ToyCollection.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ToyCollection.Controllers

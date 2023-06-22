@@ -140,7 +140,8 @@ namespace ToyCollection.Services
         {
             foreach (var id in ids)
             {
-                UserModel user = _userManager.FindByIdAsync(id).Result;
+                UserModel? user = _userManager.FindByIdAsync(id).Result;
+                if (user == null) continue;
                 _db.Remove(user);
                 LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
             }
@@ -149,13 +150,14 @@ namespace ToyCollection.Services
 
         public bool IsUserBlocked(string username)
         {
-            UserModel user = _userManager.FindByNameAsync(username).Result;
+            UserModel? user = _userManager.FindByNameAsync(username).Result;
             return (user != null ? user.isBlocked : false);
         }
 
         public void AddClaims(string username, string claimType, string claimValue)
         {
-            UserModel user = _userManager.FindByNameAsync(username).Result;
+            UserModel? user = _userManager.FindByNameAsync(username).Result;
+            if (user == null) return;
             _userManager.AddClaimAsync(user, new Claim(claimType, claimValue)).Wait();
         }
 
