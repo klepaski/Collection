@@ -31,7 +31,7 @@ namespace ToyCollection.Controllers
             _dropboxService = dropboxService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             ViewBag.Themes = _db.Themes.ToList();
             var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -41,11 +41,11 @@ namespace ToyCollection.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateCollection()
+        public async Task<IActionResult> CreateCollection()
         {
             var form = HttpContext.Request.Form;
             var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = _db.Users.Find(userId);
+            var user = await _db.Users.FindAsync(userId);
             Collection? collection = new Collection()
             {
                 User = user,
@@ -68,20 +68,20 @@ namespace ToyCollection.Controllers
                 CustomDate2 = form["CustomDate2"],
                 CustomDate3 = form["CustomDate3"]
             };
-            _db.Collections.Add(collection);
-            _db.SaveChanges();
+            await _db.Collections.AddAsync(collection);
+            await _db.SaveChangesAsync();
             return RedirectPermanent("~/User/Index");
         }
 
         [HttpPost]
-        public IActionResult EditCollection(string id, string name, string description, string theme,
+        public async Task<IActionResult> EditCollection(string id, string name, string description, string theme,
             string customString1, string customString2, string customString3,
             string customInt1, string customInt2, string customInt3,
             string customText1, string customText2, string customText3,
             string customBool1, string customBool2, string customBool3,
             string customDate1, string customDate2, string customDate3)
         {
-            Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.ToString().Equals(id));
+            Collection? collection = await _db.Collections.FindAsync(id);
             if (collection == null) return Ok();
             collection.Name = name;
             collection.Description = description;
@@ -101,23 +101,23 @@ namespace ToyCollection.Controllers
             collection.CustomDate1 = customDate1;
             collection.CustomDate2 = customDate2;
             collection.CustomDate3 = customDate3;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return RedirectPermanent("~/User/Index");
         }
 
         [HttpPost]
-        public IActionResult DeleteCollection()
+        public async Task<IActionResult> DeleteCollection()
         {
             var id = HttpContext.Request.Form["collectionId"];
-            Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.ToString().Equals(id));
+            Collection? collection = await _db.Collections.FindAsync(id);
             if (collection == null) return Ok();
             _db.Remove(collection);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return RedirectPermanent("~/User/Index");
         }
 
         [HttpPost]
-        public async Task<string> UploadImage(Guid id)
+        public async Task<string> UploadImage(string id)
         {
             IFormFile? file = Request.Form.Files[0];
             var result = await _dropboxService.UploadImage(id, file);
@@ -131,17 +131,17 @@ namespace ToyCollection.Controllers
                         "CustomBool1", "CustomBool2", "CustomBool3", "CustomDate1", "CustomDate2", "CustomDate3" };
 
 
-        private string GetCollectionOfItem(Item? item)
-        {
-            Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.Equals(item.CollectionId));
-            if (collection == null) return "";
-            return collection.Id.ToString();
-        }
+        //private string GetCollectionOfItem(Item? item)
+        //{
+        //    Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.Equals(item.CollectionId));
+        //    if (collection == null) return "";
+        //    return collection.Id.ToString();
+        //}
 
         private Dictionary<string, string> GetCustomFields(string id)
         {
             Dictionary<string, string> result = new();
-            Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.ToString().Equals(id));
+            Collection? collection = _db.Collections.Find(id);
             if (collection == null) return result;
             foreach (string key in keys)
             {
@@ -153,17 +153,17 @@ namespace ToyCollection.Controllers
             return result;
         }
 
-        public IActionResult Items(string collectionId)
+        public async Task<IActionResult> Items(string collectionId)
         {
             ViewBag.CollectionId = collectionId;
-            ViewBag.CollectionName = _db.Collections.FirstOrDefault(x => x.Id.ToString().Equals(collectionId)).Name;
-            ViewBag.Items = (_db.Items.Where(x => x.CollectionId.ToString() == collectionId)).ToList();
+            ViewBag.CollectionName = (await _db.Collections.FindAsync(collectionId)).Name;
+            ViewBag.Items = (_db.Items.Where(x => x.CollectionId.Equals(collectionId))).ToList();
             ViewBag.CustomFields = GetCustomFields(collectionId);
             return View();
         }
 
         [HttpPost]
-        public IActionResult CreateItem()
+        public async Task<IActionResult> CreateItem()
         {
             Dictionary<string, string> parms = new();
             var form = HttpContext.Request.Form;
@@ -179,8 +179,8 @@ namespace ToyCollection.Controllers
             Item item = new Item();
             item.Name = name;
             var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            item.User = _db.Users.Find(userId);
-            item.Collection = _db.Collections.FirstOrDefault(x => x.Id.ToString().Equals(collectionId));
+            item.User = await _db.Users.FindAsync(userId);
+            item.Collection = await _db.Collections.FindAsync(collectionId);
 
             foreach (var parm in parms)
             {
@@ -192,20 +192,20 @@ namespace ToyCollection.Controllers
                     _ => parm.Value
                 };
             }
-            _db.Items.Add(item);
-            _db.SaveChanges();
+            await _db.Items.AddAsync(item);
+            await _db.SaveChangesAsync();
             return RedirectPermanent($"~/User/Items?collectionId={collectionId}");
         }
 
         [HttpPost]
-        public IActionResult EditItem(string id, string name, string tags,
+        public async Task<IActionResult> EditItem(string id, string name, string tags,
             string? customString1, string? customString2, string? customString3,
             string? customInt1, string? customInt2, string? customInt3,
             string? customText1, string? customText2, string? customText3,
             string? customBool1, string? customBool2, string? customBool3,
             string? customDate1, string? customDate2, string? customDate3)
         {
-            Item? item = _db.Items.FirstOrDefault(x => x.Id.ToString().Equals(id));
+            Item? item = await _db.Items.FindAsync(id);
             if (item == null) return Ok();
             item.Name = name;
             if (customString1 != null) item.CustomString1 = customString1;
@@ -223,31 +223,28 @@ namespace ToyCollection.Controllers
             if (customDate1 != null) item.CustomDate1 = DateTime.Parse(customDate1);
             if (customDate2 != null) item.CustomDate2 = DateTime.Parse(customDate2);
             if (customDate3 != null) item.CustomDate3 = DateTime.Parse(customDate3);
-            _db.SaveChanges();
-            var collectionId = GetCollectionOfItem(item);
-            return RedirectPermanent($"~/User/Items?collectionId={collectionId}");
+            await _db.SaveChangesAsync();
+            return RedirectPermanent($"~/User/Items?collectionId={item.CollectionId}");
         }
         
 
         [HttpPost]
-        public IActionResult DeleteItem()
+        public async Task<IActionResult> DeleteItem()
         {
             var itemId = HttpContext.Request.Form["itemId"];
-            Item? item = _db.Items.FirstOrDefault(x => x.Id.ToString().Equals(itemId));
-            var collectionId = GetCollectionOfItem(item);
+            Item? item = await _db.Items.FindAsync(itemId);
             if (item == null) return Ok();
             _db.Remove(item);
-            _db.SaveChanges();
-            return RedirectPermanent($"~/User/Items?collectionId={collectionId}");
+            await _db.SaveChangesAsync();
+            return RedirectPermanent($"~/User/Items?collectionId={item.CollectionId}");
         }
 
         //==========================================
         [HttpPost]
-        public IActionResult CreateComment(string? itemId, string? userId, string text, string date)
+        public async Task<IActionResult> CreateComment(string? itemId, string? userId, string text, string date)
         {
-            Item? item = _db.Items.First(i => i.Id.ToString().Equals(itemId));
-            UserModel? user = _db.Users.Find(userId);
-            if (item == null || user == null) return Ok();
+            Item item = await _db.Items.FindAsync(itemId);
+            UserModel user = await _db.Users.FindAsync(userId);
             Comment newComment = new Comment()
             {
                 Item = item,
@@ -255,35 +252,28 @@ namespace ToyCollection.Controllers
                 Text = text,
                 Date = DateTime.ParseExact(date, "dd.MM.yyyy, HH:mm:ss", CultureInfo.InvariantCulture)
             };
-            _db.Comments.Add(newComment);
-            _db.SaveChanges();
+            await _db.Comments.AddAsync(newComment);
+            await _db.SaveChangesAsync();
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult LikeItem(string? itemId, string? userId)
+        public async Task<IActionResult> LikeItem(string? itemId, string? userId)
         {
-            Item? item = _db.Items.First(i => i.Id.ToString().Equals(itemId));
-            UserModel? user = _db.Users.First(u => u.Id.Equals(userId));
-            //UserModel? user = _db.Users.Find(userId);
-            Like? like = _db.Likes.FirstOrDefault(l => l.Item.Equals(item) && l.User.Equals(user));
-            if (item == null || user == null || like != null) return Ok();
-            Like newLike = new Like() { Item = item, User = user };
-            _db.Likes.Add(newLike);
-            _db.SaveChanges();
+            if (await _db.Likes.FindAsync(itemId, userId) != null) return Ok();    //complicated key!!
+            Like newLike = new Like() { ItemId = itemId, UserId = userId };
+            await _db.Likes.AddAsync(newLike);
+            await _db.SaveChangesAsync();
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult DislikeItem(string? itemId, string? userId)
+        public async Task<IActionResult> DislikeItem(string? itemId, string? userId)
         {
-            Item? item = _db.Items.First(i => i.Id.ToString().Equals(itemId));
-            UserModel? user = _db.Users.First(u => u.Id.Equals(userId));
-            //UserModel? user = _db.Users.Find(userId);
-            Like? likeToDelete = _db.Likes.First(l => l.Item.Equals(item) && l.User.Equals(user));
-            if (item == null || user == null || likeToDelete == null) return Ok();
+            Like? likeToDelete = await _db.Likes.FindAsync(itemId, userId);    //complicated key!!
+            if (likeToDelete == null) return Ok();
             _db.Remove(likeToDelete);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return Ok();
         }
     }

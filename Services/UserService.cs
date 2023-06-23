@@ -9,20 +9,20 @@ namespace ToyCollection.Services
 {
     public interface IUserService
     {
-        public List<UserViewModel> GetUsers();
-        public List<Theme> GetThemes();
-        public void AddTheme(string name);
-        public void DeleteTheme(string name);
-        public void BlockUsers(string[] ids, ClaimsPrincipal userPrincipal);
-        public void GrantAdmin(string[] ids);
-        public void RevokeAdmin(string[] ids, ClaimsPrincipal userPrincipal);
-        public void UnblockUsers(string[] ids);
-        public void DeleteUsers(string[] ids, ClaimsPrincipal userPrincipal);
+        public Task<List<UserViewModel>> GetUsers();
+        public Task<List<Theme>> GetThemes();
+        public Task AddTheme(string name);
+        public Task DeleteTheme(string name);
+        public Task BlockUsers(string[] ids, ClaimsPrincipal userPrincipal);
+        public Task GrantAdmin(string[] ids);
+        public Task RevokeAdmin(string[] ids, ClaimsPrincipal userPrincipal);
+        public Task UnblockUsers(string[] ids);
+        public Task DeleteUsers(string[] ids, ClaimsPrincipal userPrincipal);
         public bool IsUserBlocked(string email);
         public void AddClaims(string username, string claimType, string claimValue);
         public void AddClaims(UserModel user, string claimType, string claimValue);
         public void RemoveClaims(UserModel user, string claimType, string claimValue);
-        public void LogoutInactiveUserIfHeOnline(string username, ClaimsPrincipal userPrincipal);
+        public Task LogoutInactiveUserIfHeOnline(string username, ClaimsPrincipal userPrincipal);
     }
 
     public class UserService : IUserService
@@ -44,30 +44,29 @@ namespace ToyCollection.Services
 
         // THEMES----------------------------------------
 
-        public List<Theme> GetThemes()
+        public async Task<List<Theme>> GetThemes()
         {
-            return _db.Themes.ToList();
+            return await _db.Themes.ToListAsync();
         }
 
-        public void AddTheme(string name)
+        public async Task AddTheme(string name)
         {
-            Theme? theme = _db.Themes.FirstOrDefault(x => x.Name.Equals(name));
-            if (theme != null) return;
-            _db.Themes.Add(new Theme() { Name = name });
-            _db.SaveChanges();
+            if (await _db.Themes.FindAsync(name) != null) return;
+            await _db.Themes.AddAsync(new Theme() { Name = name });
+            await _db.SaveChangesAsync();
         }
 
-        public void DeleteTheme(string name)
+        public async Task DeleteTheme(string name)
         {
-            Theme? theme = _db.Themes.FirstOrDefault(x => x.Name.Equals(name));
+            Theme? theme = await _db.Themes.FindAsync(name);
             if (theme == null) return;
             _db.Remove(theme);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         // USERS---------------------------------------------
 
-        public List<UserViewModel> GetUsers()
+        public async Task<List<UserViewModel>> GetUsers()
         {
             var users = from user in _db.Users
                         join userRole in _db.UserRoles on user.Id equals userRole.UserId
@@ -81,71 +80,64 @@ namespace ToyCollection.Services
                             IsBlocked = _db.Users.FirstOrDefault(u => u.Id == rolesGroup.Key).isBlocked,
                             Roles = rolesGroup.ToList()
                         };
-            return users.ToList();
+            return await users.ToListAsync();
         }
 
-        public void GrantAdmin(string[] ids)
+        public async Task GrantAdmin(string[] ids)
         {
             foreach (var id in ids)
             {
-                UserModel? user = _userManager.FindByIdAsync(id).Result;
-                IdentityRole? role = _roleManager.FindByNameAsync("Admin").Result;
-                if (_db.UserRoles.Find(user.Id, role.Id) != null) continue;
-                IdentityUserRole<string> userRole = new();
-                userRole.UserId = user.Id;
-                userRole.RoleId = role.Id;
-                _db.UserRoles.Add(userRole);
+                var user = await _userManager.FindByIdAsync(id);
+                var userRoles = await _userManager.GetRolesAsync(user);
+                if (!userRoles.Contains("Admin")) await _userManager.AddToRoleAsync(user, "Admin");
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void RevokeAdmin(string[] ids, ClaimsPrincipal userPrincipal)
+        public async Task RevokeAdmin(string[] ids, ClaimsPrincipal userPrincipal)
         {
             foreach (var id in ids)
             {
-                UserModel? user = _userManager.FindByIdAsync(id).Result;
-                IdentityRole? role = _roleManager.FindByNameAsync("Admin").Result;
-                IdentityUserRole<string>? userRole = _db.UserRoles.Find(user.Id, role.Id);
-                if (userRole == null) continue;
-                _db.Remove(userRole);
-                LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
+                var user = await _userManager.FindByIdAsync(id);
+                var userRoles = await _userManager.GetRolesAsync(user);
+                if (userRoles.Contains("Admin")) await _userManager.RemoveFromRoleAsync(user, "Admin");
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void BlockUsers(string[] ids, ClaimsPrincipal userPrincipal)
+        public async Task BlockUsers(string[] ids, ClaimsPrincipal userPrincipal)
         {
             foreach (var id in ids)
             {
-                UserModel? user = _db.Users.FirstOrDefault(x => x.Id.Equals(id));
+                UserModel? user = await _db.Users.FirstAsync(x => x.Id.Equals(id));
                 if (user == null) continue;
                 user.isBlocked = true;
-                LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
+                await LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void UnblockUsers(string[] ids)
+        public async Task UnblockUsers(string[] ids)
         {
             foreach (var id in ids)
             {
-                UserModel? user = _db.Users.FirstOrDefault(x => x.Id.Equals(id));
+                UserModel? user = await _db.Users.FirstAsync(x => x.Id.Equals(id));
                 if (user == null) continue;
                 user.isBlocked = false;
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        public void DeleteUsers(string[] ids, ClaimsPrincipal userPrincipal)
+        public async Task DeleteUsers(string[] ids, ClaimsPrincipal userPrincipal)
         {
             foreach (var id in ids)
             {
                 UserModel? user = _userManager.FindByIdAsync(id).Result;
                 if (user == null) continue;
                 _db.Remove(user);
-                LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
+                await LogoutInactiveUserIfHeOnline(user.UserName, userPrincipal);
             }
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         public bool IsUserBlocked(string username)
@@ -171,11 +163,11 @@ namespace ToyCollection.Services
             _userManager.RemoveClaimAsync(user, new Claim(claimType, claimValue));
         }
 
-        public void LogoutInactiveUserIfHeOnline(string username, ClaimsPrincipal userPrincipal)
+        public async Task LogoutInactiveUserIfHeOnline(string username, ClaimsPrincipal userPrincipal)
         {
             if (userPrincipal.Identity != null && userPrincipal.Identity.IsAuthenticated && username.Equals(userPrincipal.Identity.Name))
             {
-                _signInManager.SignOutAsync();
+                await _signInManager.SignOutAsync();
             }
         }
     }

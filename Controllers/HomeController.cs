@@ -21,14 +21,12 @@ namespace ToyCollection.Controllers
             _db = db;
         }
 
-        private Dictionary<string, string> GetCustomFields(string id)
+        private Dictionary<string, string> GetCustomFields(Collection collection)
         {
             string[] keys = new string[] {"CustomString1", "CustomString2", "CustomString3",
-                        "CustomInt1", "CustomInt2", "CustomInt3", "CustomText1", "CustomText2", "CustomText3",
-                        "CustomBool1", "CustomBool2", "CustomBool3", "CustomDate1", "CustomDate2", "CustomDate3" };
+                 "CustomInt1", "CustomInt2", "CustomInt3", "CustomText1", "CustomText2", "CustomText3",
+                 "CustomBool1", "CustomBool2", "CustomBool3", "CustomDate1", "CustomDate2", "CustomDate3" };
             Dictionary<string, string> result = new();
-            Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.ToString().Equals(id));
-            if (collection == null) return result;
             foreach (string key in keys)
             {
                 if (collection[key] != "" && collection[key] != null)
@@ -44,15 +42,20 @@ namespace ToyCollection.Controllers
             return View();
         }
 
-        public IActionResult Item(string itemId)
+        public async Task<IActionResult> Item(string itemId)
         {
-            string collectionId = _db.Items.First(i => i.Id.ToString() == itemId).CollectionId.ToString();
-            ViewBag.Item = _db.Items.First(i => i.Id.ToString() == itemId);
-            ViewBag.Collection = _db.Collections.First(c => c.Id.ToString() == collectionId);
-            ViewBag.Comments = _db.Comments.Where(c => c.ItemId.ToString() == itemId).Include(c => c.User).ToList();
-            ViewBag.Likes = _db.Likes.Where(l => l.ItemId.ToString() == itemId).Include(l => l.User).ToList();
-            ViewBag.CustomFields = GetCustomFields(collectionId);
-            //ViewBag.CurrentUser = HttpContext.User;
+            Item item = await _db.Items.FindAsync(itemId);
+            Collection collection = await _db.Collections.FindAsync(item.CollectionId);
+            Console.WriteLine(collection.Name);
+            List<Comment> comments = await _db.Comments.Where(c => c.ItemId.Equals(itemId)).Include(c => c.User).ToListAsync();
+            List<Like> likes = await _db.Likes.Where(l => l.ItemId.Equals(itemId)).Include(l => l.User).ToListAsync();
+            Dictionary<string, string> customFields = GetCustomFields(collection);
+
+            ViewBag.Item = item;
+            ViewBag.Collection = collection;
+            ViewBag.Comments = comments;
+            ViewBag.Likes = likes;
+            ViewBag.CustomFields = customFields;
             return View();
         }
 

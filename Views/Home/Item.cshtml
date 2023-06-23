@@ -20,7 +20,7 @@
     ViewData["Title"] = $"Item {item.Name}";
 }
 
-<h1>Item @item.Name from collection @collection.Name</h1>
+<h1>Item @item.Name</h1>
 <hr/>
 @if (@item == null)
 {
@@ -44,30 +44,23 @@
         
         <div class="row">
             <div id="like" class="heart">
-                @if (!User.IsInRole("Admin") && !User.IsInRole("User"))
+                @if (isLiked)
                 {
-                    @*<i class="fa fa-heart-o" id="likeButton" disabled></i>*@
-                    <i class="fa fa-heart" id="dislikeButton" style="display:none"></i>
-                    <i class="fa fa-heart-o" id="likeButton"></i>
+                    <i class="fa fa-heart" id="dislikeButton"></i>
+                    <i class="fa fa-heart-o" id="likeButton" style="display:none"></i>
+                    <span id="likeCount">@likes.Count</span>
                 }
                 else
                 {
-                    @if (isLiked)
-                    {
-                        <i class="fa fa-heart" id="dislikeButton"></i>
-                        <i class="fa fa-heart-o" id="likeButton" style="display:none"></i>
-                    }
-                    else
-                    {
-                        <i class="fa fa-heart" id="dislikeButton" style="display:none"></i>
-                        <i class="fa fa-heart-o" id="likeButton"></i>
-                    }
+                    <i class="fa fa-heart" id="dislikeButton" style="display:none"></i>
+                    <i class="fa fa-heart-o" id="likeButton"></i>
+                    <span id="likeCount">@likes.Count</span>
                 }
             </div>
-            <div id="likeCount">@likes.Count</div>
+            @*<div id="likeCount">@likes.Count</div>*@
         </div>
 
-        @if (User.IsInRole("Admin")) @*ДОБАВИТЬ ПРОВЕРКУ ХОЗЯИНА АЙТЕМА*@
+        @if (User.IsInRole("Admin") || @item.UserId == userId) @*ДОБАВИТЬ ПРОВЕРКУ ХОЗЯИНА АЙТЕМА*@
         {
             <a class="btn btn-success" href="/User/Items?collectionId=@collection.Id">Edit item</a>
         }
@@ -153,8 +146,9 @@
     });
 
     $("#likeButton").click(function () {
-        if (@isAuthorised) {
+        if ("@isAuthorised" == "False") {
             $('#login-modal').modal('show');
+            return;
         }
         $.ajax({
             url: '/User/LikeItem',

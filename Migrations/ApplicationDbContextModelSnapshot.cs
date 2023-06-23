@@ -24,15 +24,15 @@ namespace ToyCollection.Migrations
 
             modelBuilder.Entity("ItemTag", b =>
                 {
-                    b.Property<Guid>("ItemsId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ItemsId")
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("TagsId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TagsName")
+                        .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("ItemsId", "TagsId");
+                    b.HasKey("ItemsId", "TagsName");
 
-                    b.HasIndex("TagsId");
+                    b.HasIndex("TagsName");
 
                     b.ToTable("ItemTag");
                 });
@@ -244,9 +244,9 @@ namespace ToyCollection.Migrations
 
             modelBuilder.Entity("ToyCollection.Models.Collection", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CustomBool1")
                         .HasColumnType("nvarchar(max)");
@@ -309,6 +309,7 @@ namespace ToyCollection.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -320,21 +321,23 @@ namespace ToyCollection.Migrations
 
             modelBuilder.Entity("ToyCollection.Models.Comment", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("ItemId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -348,12 +351,13 @@ namespace ToyCollection.Migrations
 
             modelBuilder.Entity("ToyCollection.Models.Item", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("CollectionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("CollectionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool?>("CustomBool1")
                         .HasColumnType("bit");
@@ -405,6 +409,7 @@ namespace ToyCollection.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -418,19 +423,13 @@ namespace ToyCollection.Migrations
 
             modelBuilder.Entity("ToyCollection.Models.Like", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ItemId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ItemId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("ItemId");
+                    b.HasKey("ItemId", "UserId");
 
                     b.HasIndex("UserId");
 
@@ -439,17 +438,38 @@ namespace ToyCollection.Migrations
 
             modelBuilder.Entity("ToyCollection.Models.Tag", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("Id");
+                    b.HasKey("Name");
 
                     b.ToTable("Tags");
+
+                    b.HasData(
+                        new
+                        {
+                            Name = "Barbie"
+                        },
+                        new
+                        {
+                            Name = "Pretty"
+                        },
+                        new
+                        {
+                            Name = "Lermontov"
+                        },
+                        new
+                        {
+                            Name = "Pushkin"
+                        },
+                        new
+                        {
+                            Name = "Garden"
+                        },
+                        new
+                        {
+                            Name = "Stamps"
+                        });
                 });
 
             modelBuilder.Entity("ToyCollection.Models.Theme", b =>
@@ -460,6 +480,36 @@ namespace ToyCollection.Migrations
                     b.HasKey("Name");
 
                     b.ToTable("Themes");
+
+                    b.HasData(
+                        new
+                        {
+                            Name = "Books"
+                        },
+                        new
+                        {
+                            Name = "Toys"
+                        },
+                        new
+                        {
+                            Name = "Clothes"
+                        },
+                        new
+                        {
+                            Name = "Jewelry"
+                        },
+                        new
+                        {
+                            Name = "Antiques"
+                        },
+                        new
+                        {
+                            Name = "Gnomes"
+                        },
+                        new
+                        {
+                            Name = "Others"
+                        });
                 });
 
             modelBuilder.Entity("ItemTag", b =>
@@ -472,7 +522,7 @@ namespace ToyCollection.Migrations
 
                     b.HasOne("ToyCollection.Models.Tag", null)
                         .WithMany()
-                        .HasForeignKey("TagsId")
+                        .HasForeignKey("TagsName")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -532,7 +582,9 @@ namespace ToyCollection.Migrations
                 {
                     b.HasOne("ToyCollection.Areas.Identity.Data.UserModel", "User")
                         .WithMany("Collections")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -547,7 +599,9 @@ namespace ToyCollection.Migrations
 
                     b.HasOne("ToyCollection.Areas.Identity.Data.UserModel", "User")
                         .WithMany("Comments")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Item");
 
@@ -564,7 +618,9 @@ namespace ToyCollection.Migrations
 
                     b.HasOne("ToyCollection.Areas.Identity.Data.UserModel", "User")
                         .WithMany("Items")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Collection");
 
@@ -581,7 +637,9 @@ namespace ToyCollection.Migrations
 
                     b.HasOne("ToyCollection.Areas.Identity.Data.UserModel", "User")
                         .WithMany("Likes")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Item");
 

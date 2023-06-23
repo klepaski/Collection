@@ -7,46 +7,6 @@ using ToyCollection.Models;
 
 namespace ToyCollection.Areas.Identity.Data;
 
-//public class ApplicationDbContext : IdentityDbContext<UserModel, RoleModel, string, IdentityUserClaim<string>,
-//    UserRoleModel, IdentityUserLogin<string>,
-//    IdentityRoleClaim<string>, IdentityUserToken<string>>
-//{
-//    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-//        : base(options)
-//    {
-//    }
-
-//    protected override void OnModelCreating(ModelBuilder builder)
-//    {
-//        base.OnModelCreating(builder);
-
-//        builder.ApplyConfiguration(new ApplicationUserEntityConfiguration());
-
-//        builder.Entity<UserRoleModel>(userRole =>
-//        {
-//            userRole.HasKey(ur => new { ur.UserId, ur.RoleId });
-
-//            userRole.HasOne(ur => ur.Role)
-//                .WithMany(r => r.UserRoles)
-//                .HasForeignKey(ur => ur.RoleId)
-//                .IsRequired();
-
-//            userRole.HasOne(ur => ur.User)
-//                .WithMany(r => r.UserRoles)
-//                .HasForeignKey(ur => ur.UserId)
-//                .IsRequired();
-//        });
-//    }
-//}
-
-//public class ApplicationUserEntityConfiguration : IEntityTypeConfiguration<UserModel>
-//{
-//    public void Configure(EntityTypeBuilder<UserModel> builder)
-//    {
-//        builder.Property(x => x.isBlocked);
-//    }
-//}
-
 public class ApplicationDbContext : IdentityDbContext<UserModel>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
@@ -60,45 +20,89 @@ public class ApplicationDbContext : IdentityDbContext<UserModel>
     public DbSet<Collection> Collections { get; set; } = null!;
     public DbSet<Theme> Themes { get; set; } = null!;
 
-    //public DbSet<ItemField> ItemFields { get; set; }
-    //public DbSet<Field> Fields { get; set; }
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         builder.ApplyConfiguration(new ApplicationUserEntityConfiguration());
 
-        builder.Entity<Theme>().
-            HasKey(x => x.Name);
-        //builder.Entity<ItemField>()
-        //    .HasKey(x => new { x.ItemId, x.FieldId });
+        builder.Entity<Theme>()
+            .HasKey(x => x.Name);
 
-        //builder.Entity<ItemField>()
-        //    .HasOne(x => x.Item)
-        //    .WithMany(x => x.ItemFields)
-        //    .HasForeignKey(x => x.ItemId);
+        builder.Entity<Theme>().HasData(
+            new Theme[]
+            {
+                new Theme { Name="Books" },
+                new Theme { Name="Toys" },
+                new Theme { Name="Clothes" },
+                new Theme { Name="Jewelry" },
+                new Theme { Name="Antiques" },
+                new Theme { Name="Gnomes" },
+                new Theme { Name="Others" }
+            });
 
-        //builder.Entity<ItemField>()
-        //    .HasOne(x => x.Field)
-        //    .WithMany()
-        //    .HasForeignKey(x => x.FieldId);
+        builder.Entity<Item>()
+            .HasOne(x => x.Collection)
+            .WithMany(x => x.Items)
+            .HasForeignKey(x => x.CollectionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        //builder.Entity<Field>()
-        //    .HasOne(x => x.Collection)
-        //    .WithMany(x => x.Fields)
-        //    .HasForeignKey(x => x.CollectionId);
+        builder.Entity<Item>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.Items)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        //builder.Entity<Comment>()
-        //    .HasOne(x => x.Item)
-        //    .WithMany(x => x.Comments)
-        //    .HasForeignKey(x => x.ItemId);
+        builder.Entity<Collection>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.Collections)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        //builder.Entity<Like>()
-        //    .HasOne(x => x.Item)
-        //    .WithMany(x => x.Likes)
-        //    .HasForeignKey(x => x.ItemId);
+        builder.Entity<Comment>()
+            .HasOne(x => x.Item)
+            .WithMany(x => x.Comments)
+            .HasForeignKey(x => x.ItemId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Comment>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.Comments)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Like>()
+            .HasKey(x => new { x.ItemId, x.UserId });
+
+        builder.Entity<Like>()
+            .HasOne(x => x.Item)
+            .WithMany(x => x.Likes)
+            .HasForeignKey(x => x.ItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Like>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.Likes)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Tag>()
+            .HasKey(x => x.Name);
+
+        builder.Entity<Tag>()
+            .HasMany(x => x.Items)
+            .WithMany(x => x.Tags);
+
+        builder.Entity<Tag>().HasData(
+            new Tag[]
+            {
+                new Tag { Name="Barbie" },
+                new Tag { Name="Pretty" },
+                new Tag { Name="Lermontov" },
+                new Tag { Name="Pushkin" },
+                new Tag { Name="Garden" },
+                new Tag { Name="Stamps" }
+            });
     }
 }
 

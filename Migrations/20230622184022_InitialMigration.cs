@@ -55,12 +55,11 @@ namespace ToyCollection.Migrations
                 name: "Tags",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tags", x => x.Id);
+                    table.PrimaryKey("PK_Tags", x => x.Name);
                 });
 
             migrationBuilder.CreateTable(
@@ -184,12 +183,12 @@ namespace ToyCollection.Migrations
                 name: "Collections",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Theme = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CustomString1 = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CustomString2 = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CustomString3 = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -213,17 +212,18 @@ namespace ToyCollection.Migrations
                         name: "FK_Collections_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CollectionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CollectionId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CustomString1 = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CustomString2 = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CustomString3 = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -247,7 +247,8 @@ namespace ToyCollection.Migrations
                         name: "FK_Items_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Items_Collections_CollectionId",
                         column: x => x.CollectionId,
@@ -260,11 +261,11 @@ namespace ToyCollection.Migrations
                 name: "Comments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ItemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -273,7 +274,8 @@ namespace ToyCollection.Migrations
                         name: "FK_Comments_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Comments_Items_ItemId",
                         column: x => x.ItemId,
@@ -286,12 +288,12 @@ namespace ToyCollection.Migrations
                 name: "ItemTag",
                 columns: table => new
                 {
-                    ItemsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TagsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    ItemsId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TagsName = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ItemTag", x => new { x.ItemsId, x.TagsId });
+                    table.PrimaryKey("PK_ItemTag", x => new { x.ItemsId, x.TagsName });
                     table.ForeignKey(
                         name: "FK_ItemTag_Items_ItemsId",
                         column: x => x.ItemsId,
@@ -299,10 +301,10 @@ namespace ToyCollection.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ItemTag_Tags_TagsId",
-                        column: x => x.TagsId,
+                        name: "FK_ItemTag_Tags_TagsName",
+                        column: x => x.TagsName,
                         principalTable: "Tags",
-                        principalColumn: "Id",
+                        principalColumn: "Name",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -310,24 +312,51 @@ namespace ToyCollection.Migrations
                 name: "Likes",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    ItemId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Likes", x => x.Id);
+                    table.PrimaryKey("PK_Likes", x => new { x.ItemId, x.UserId });
                     table.ForeignKey(
                         name: "FK_Likes_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Likes_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Tags",
+                column: "Name",
+                values: new object[]
+                {
+                    "Barbie",
+                    "Garden",
+                    "Lermontov",
+                    "Pretty",
+                    "Pushkin",
+                    "Stamps"
+                });
+
+            migrationBuilder.InsertData(
+                table: "Themes",
+                column: "Name",
+                values: new object[]
+                {
+                    "Antiques",
+                    "Books",
+                    "Clothes",
+                    "Gnomes",
+                    "Jewelry",
+                    "Others",
+                    "Toys"
                 });
 
             migrationBuilder.CreateIndex(
@@ -395,14 +424,9 @@ namespace ToyCollection.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ItemTag_TagsId",
+                name: "IX_ItemTag_TagsName",
                 table: "ItemTag",
-                column: "TagsId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Likes_ItemId",
-                table: "Likes",
-                column: "ItemId");
+                column: "TagsName");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Likes_UserId",

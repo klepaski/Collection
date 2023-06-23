@@ -25,7 +25,7 @@ namespace ToyCollection.Services
 {
     public interface IDropboxService
     {
-        public Task<string> UploadImage(Guid id, IFormFile? file);
+        public Task<string> UploadImage(string id, IFormFile? file);
     }
 
     public class DropboxService : IDropboxService
@@ -63,7 +63,7 @@ namespace ToyCollection.Services
             }
         }
 
-        public async Task<string> UploadImage(Guid id, IFormFile? file)
+        public async Task<string> UploadImage(string id, IFormFile? file)
         {
             var collection = await _db.Collections.FindAsync(id);
             if (collection == null || file == null || file.Length == 0) return "";
