@@ -1,8 +1,12 @@
 ﻿@page
+@using Microsoft.AspNetCore.Mvc.Localization;
+@using Microsoft.AspNetCore.Localization;
+@using ToyCollection;
+@inject IHtmlLocalizer<SharedResource> l
 @model LoginModel
 
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = l["Login"];
 }
 
 <div class="row">
@@ -10,17 +14,17 @@
         <h1>@ViewData["Title"]</h1>
         <section>
             <form id="account" method="post">
-                <h2>Welcome back!</h2>
+                <h2>@l["WelcomeBack"]</h2>
                 <hr />
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="username" />
-                    <label asp-for="Input.UserName" class="form-label">UserName</label>
+                    <input asp-for="Input.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="@l["UserName"]" />
+                    <label asp-for="Input.UserName" class="form-label">@l["UserName"]</label>
                     <span asp-validation-for="Input.UserName" class="text-danger"></span>
                 </div>
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="@l["Password"]" />
+                    <label asp-for="Input.Password" class="form-label">@l["Password"]</label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
                 <div class="checkbox mb-3">
@@ -30,7 +34,7 @@
                     </label>
                 </div>
                 <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">@l["Login"]</button>
                 </div>
             </form>
         </section>

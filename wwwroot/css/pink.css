@@ -57,3 +57,7 @@ a {
         border-bottom: 5px solid salmon;
         border-right: 5px solid salmon;
     }
+
+table.sortable > thead th:hover:not([data-defaultsort=disabled]) {
+    background-color: lightsalmon !important;
+}

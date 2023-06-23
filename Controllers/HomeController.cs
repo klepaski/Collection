@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Identity;
 using NuGet.Packaging.Signing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Localization;
 
 namespace ToyCollection.Controllers
 {
@@ -50,13 +53,22 @@ namespace ToyCollection.Controllers
             List<Comment> comments = await _db.Comments.Where(c => c.ItemId.Equals(itemId)).Include(c => c.User).OrderBy(c => c.Date).ToListAsync();
             List<Like> likes = await _db.Likes.Where(l => l.ItemId.Equals(itemId)).Include(l => l.User).ToListAsync();
             Dictionary<string, string> customFields = GetCustomFields(collection);
-
             ViewBag.Item = item;
             ViewBag.Collection = collection;
             ViewBag.Comments = comments;
             ViewBag.Likes = likes;
             ViewBag.CustomFields = customFields;
             return View();
+        }
+
+        public IActionResult SetLanguage(string culture, string returnUrl)
+        {
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+            );
+            return LocalRedirect(returnUrl);
         }
 
         public IActionResult Privacy()

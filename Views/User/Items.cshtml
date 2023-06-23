@@ -3,26 +3,27 @@
     List<Item> items = ViewBag.Items;
     string collectionName = ViewBag.CollectionName;
     Dictionary<string, string> customFields = ViewBag.CustomFields;
-    ViewData["Title"] = "My items";
+    ViewData["Title"] = @l["MyItems"];
 }
 
-<h1>My items from collection <a href="/User/Index">@collectionName</a></h1>
+<h1>@l["MyItemsFromCollection"] <a href="/User/Index">@collectionName</a></h1>
 @if (@items.Count == 0)
 {
-    <p>You haven't created any items yet</p>
+    <p>@l["NoItems"]</p>
 }
 
-<input class="form-control" id="myInput" type="text" placeholder="Search..."><br/>
+<input class="form-control" id="myInput" type="text" placeholder="@l["Search"]">
+<br />
 <table class="table sortable">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Tags</th>
+            <th>@l["Name"]</th>
+            <th>@l["Tags"]</th>
             @foreach (var field in customFields)
             {
                 <th>@field.Value</th>
             }
-            <th data-defaultsort='disabled'>Actions</th>
+            <th data-defaultsort='disabled'>@l["Actions"]</th>
         </tr>
     </thead>
     <tbody>

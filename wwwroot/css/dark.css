@@ -56,3 +56,6 @@ input, textarea, select {
     background-color: lightgreen;
     color: green;
 }
+table.sortable > thead th:hover:not([data-defaultsort=disabled]) {
+    background-color: darkslategrey !important;
+}

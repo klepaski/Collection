@@ -3,6 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using ToyCollection.Areas.Identity.Data;
 using ToyCollection.Services;
 using ToyCollection.Hubs;
+using Microsoft.AspNetCore.Mvc.Localization;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +33,13 @@ builder.Services.Configure<IdentityOptions>(opts =>
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IDropboxService, DropboxService>();
 
+builder.Services.AddLocalization(opts => opts.ResourcesPath = "Resources");
+
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddMvc()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix,
+    opts => opts.ResourcesPath = "Resources");
 
 var app = builder.Build();
 
@@ -38,12 +48,22 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
-app.UseHttpsRedirection();
+var supportedCultures = new[]
+{
+    new CultureInfo("en"),
+    new CultureInfo("ru")
+};
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(

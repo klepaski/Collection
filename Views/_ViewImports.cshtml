@@ -4,7 +4,11 @@
 
 @using Microsoft.AspNetCore.Identity;
 @using ToyCollection.Areas.Identity.Data;
-//@using System.Security.Claims;
+@using System.Security.Claims;
 
 @inject SignInManager<UserModel> SignInManager
 @inject UserManager<UserModel> UserManager
+
+@using Microsoft.AspNetCore.Mvc.Localization;
+@using Microsoft.AspNetCore.Localization;
+@inject IHtmlLocalizer<SharedResource> l

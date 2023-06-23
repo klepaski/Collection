@@ -1,7 +1,4 @@
-﻿@*@inject SignInManager<UserModel> SignInManager
-@inject UserManager<UserModel> UserManager*@
-
-@{
+﻿@{
     ViewData["Title"] = "Admin Page";
     List<Theme> themes = ViewBag.Themes;
 }
@@ -9,7 +6,7 @@
 
 <div class="row">
     <div class="col-md-8">
-        <h1>Users</h1>
+        <h1>@l["Users"]</h1>
         @if (@Model.Count > 0)
         {
             <form asp-controller="Admin">
@@ -17,18 +14,18 @@
                     <button class="btn btn-danger" asp-action="DeleteUser" type="submit"><i class="fa fa-trash"></i></button>
                     <button class="btn btn-warning mx-2" asp-action="BlockUser" type="submit"><i class="fa fa-lock"></i></button>
                     <button class="btn btn-success" asp-action="UnblockUser" type="submit"><i class="fa fa-unlock-alt"></i></button>
-                    <button class="btn btn-success mx-2" asp-action="GrantAdmin" type="submit">Grant admin</button>
-                    <button class="btn btn-warning" asp-action="RevokeAdmin" type="submit">Revoke admin</button>
+                    <button class="btn btn-success mx-2" asp-action="GrantAdmin" type="submit">@l["GrantAdmin"]</button>
+                    <button class="btn btn-warning" asp-action="RevokeAdmin" type="submit">@l["RevokeAdmin"]</button>
                 </div>
 
                 <table class="table">
                     <thead>
                         <tr>
                             <th style="width: 8%"><input type="checkbox" id="mainSwitcher" /></th>
-                            <th style="width: 22%">Name</th>
+                            <th style="width: 22%">@l["UserName"]</th>
                             <th style="width: 33%">Email</th>
-                            <th style="width: 17%">Status</th>
-                            <th style="width: 20%">Role</th>
+                            <th style="width: 17%">@l["Status"]</th>
+                            <th style="width: 20%">@l["Role"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,11 +38,11 @@
                                 <td>
                                     @if (user.IsBlocked)
                                     {
-                                        <div class="text-danger">blocked</div>
+                                        <div class="text-danger">@l["Blocked"]</div>
                                     }
                                     else
                                     {
-                                        <div class="text-success">active</div>
+                                        <div class="text-success">@l["Active"]</div>
                                     }
                                 </td>
                                 <td>
@@ -62,16 +59,16 @@
         }
         else
         {
-            <p>There is no users yet</p>
+            <p>@l["NoUsers"]</p>
         }
     </div>
 
     <div class="col-md-4">
         <br /><br />
-        <h1>Themes</h1>
+        <h1>@l["Themes"]</h1>
         @if (@themes.Count == 0)
         {
-            <p>There's no themes yet</p>
+            <p>@l["NoThemes"]</p>
         }
         <table class="table">
             @if (@themes.Count > 0)

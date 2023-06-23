@@ -17,10 +17,10 @@
             break;
         }
     };
-    ViewData["Title"] = $"Item {item.Name}";
+    ViewData["Title"] = l["Item"] + $" {item.Name}";
 }
 
-<h1>Item @item.Name</h1>
+<h1>@l["Item"] @item.Name</h1>
 <hr/>
 @if (@item == null)
 {
@@ -35,11 +35,11 @@
     <div class="col-md-8 row">
         <table>
             <tr>
-                <td class="field">Name </td>
+                <td class="field">@l["Name"] </td>
                 <td class="fvalue">@item.Name</td>
             </tr>
             <tr>
-                <td class="field">Tags </td>
+                <td class="field">@l["Tags"] </td>
                 <td class="fvalue">@item.Tags</td>
             </tr>@*ДОБАВИТЬ ТЭГИ*@
             @foreach (var field in customFields)
@@ -50,11 +50,11 @@
                 </tr>
             }
             @*<tr>
-                <td class="field">Owner: </td>
+                <td class="field">@l["Owner"]: </td>
             <td class="fvalue">@item.User.UserName</td>
             </tr>*@
             <tr>
-                <td class="field">Collection </td>
+                <td class="field">@l["Collection"] </td>
                 <td class="fvalue"><a href="/">@collection.Name</a></td>
             </tr>
             @*ДОБАВИТЬ ССЫЛКУ НА ПРОСМОТР КОЛЛЕКЦИИ*@
@@ -79,12 +79,12 @@
 
         @if (User.IsInRole("Admin") || @item.UserId == userId) @*ДОБАВИТЬ ПРОВЕРКУ ХОЗЯИНА АЙТЕМА*@
         {
-            <a class="btn btn-success" href="/User/Items?collectionId=@collection.Id">Edit item</a>
+            <a class="btn btn-success" href="/User/Items?collectionId=@collection.Id">@l["EditItem"]</a>
         }
     </div>
 </div>
 <hr/>
-<h1>Comments:</h1>
+<h1>@l["Comments"]:</h1>
 <div id="comments">
     @foreach (var comment in comments)
     {
@@ -97,9 +97,9 @@
 </div>
 @if(User.IsInRole("Admin") || User.IsInRole("User"))
 {
-    <div id="notification" style="display: none"></div>
+    <div id="notification" style="display: none">@l["CommentNotification"]</div>
     <input type="text" id="newComment" />
-    <button type="button" class="btn btn-success" id="newCommentButton">Add comment</button>
+    <button type="button" class="btn btn-success" id="newCommentButton">@l["AddComment"]</button>
 }
 
 
@@ -107,12 +107,12 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">For this acton you must be logged in</h4>
+                <h4 class="modal-title">@l["MustLogin"]</h4>
                 <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
             </div>
             <div class="modal-footer">
-                <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Log in</a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">@l["Login"]</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@l["Close"]</button>
             </div>
         </div>
     </div>
@@ -134,7 +134,7 @@
     $("#newCommentButton").click(function() {
         var commentText = $("#newComment").val();
         $("#newComment").val("");
-        $("#notification").text("The comment was sent").show();
+        $("#notification").show();
         setTimeout(() => $("#notification").hide(), 2000);
         var date = new Date().toLocaleString('ru-RU', {
             day: 'numeric',
