@@ -1,0 +1,58 @@
+﻿body {
+    background: url("/images/fishes.jpg") repeat;
+    color: white;
+}
+
+a {
+    color: lightgreen;
+}
+
+h1 {
+    color: mediumseagreen;
+}
+
+input, textarea, select {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+}
+
+.container {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.table {
+    color: white;
+    border: 10px solid black;
+}
+    .table th {
+        color: mediumseagreen;
+        background: rgba(0, 0, 0, 0.7);
+    }
+    .table td {
+        border-bottom: 5px solid black;
+        border-right: 5px solid black;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+
+.field {
+    border-bottom: 1px dotted darkgreen;
+    color: mediumseagreen;
+}
+.fvalue {
+    border-bottom: 1px dotted darkgreen;
+    border-left: 1px dotted darkgreen;
+}
+
+.comment {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid darkgreen;
+}
+    .comment h5 {
+        color: mediumseagreen;
+    }
+
+#notification {
+    background-color: lightgreen;
+    color: green;
+}

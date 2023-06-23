@@ -33,15 +33,33 @@
         <div style="aspect-ratio:1"><img src="@url" id="pic-@collection.Id" class="collectionPic" /></div>
     </div>
     <div class="col-md-8 row">
-        Name: @item.Name<br />
-        Tags: @item.Tags<br />@*ДОБАВИТЬ ТЭГИ*@
-        @foreach (var field in customFields)
-        {
-            <text>@field.Value: @item[@field.Key]</text>
-        }
-        @*Owner: @item.User.UserName<br/>*@
-        Collection: <a href="/">@collection.Name</a> <br /> @*ДОБАВИТЬ ССЫЛКУ НА ПРОСМОТР КОЛЛЕКЦИИ*@
-        
+        <table>
+            <tr>
+                <td class="field">Name </td>
+                <td class="fvalue">@item.Name</td>
+            </tr>
+            <tr>
+                <td class="field">Tags </td>
+                <td class="fvalue">@item.Tags</td>
+            </tr>@*ДОБАВИТЬ ТЭГИ*@
+            @foreach (var field in customFields)
+            {
+                <tr>
+                    <td class="field">@field.Value </td>
+                    <td class="fvalue">@item[@field.Key]</td>
+                </tr>
+            }
+            @*<tr>
+                <td class="field">Owner: </td>
+            <td class="fvalue">@item.User.UserName</td>
+            </tr>*@
+            <tr>
+                <td class="field">Collection </td>
+                <td class="fvalue"><a href="/">@collection.Name</a></td>
+            </tr>
+            @*ДОБАВИТЬ ССЫЛКУ НА ПРОСМОТР КОЛЛЕКЦИИ*@
+        </table>
+
         <div class="row">
             <div id="like" class="heart">
                 @if (isLiked)
@@ -57,7 +75,6 @@
                     <span id="likeCount">@likes.Count</span>
                 }
             </div>
-            @*<div id="likeCount">@likes.Count</div>*@
         </div>
 
         @if (User.IsInRole("Admin") || @item.UserId == userId) @*ДОБАВИТЬ ПРОВЕРКУ ХОЗЯИНА АЙТЕМА*@
@@ -67,23 +84,22 @@
     </div>
 </div>
 <hr/>
-<h3>Comments:</h3>
+<h1>Comments:</h1>
 <div id="comments">
     @foreach (var comment in comments)
     {
         <div class="comment">
-            <h4>@comment.User.UserName</h4>
-            <h5>@comment.Text</h5>
-            <h5>@comment.Date</h5>
-            <hr/>
+            <h5>@comment.User.UserName</h5>
+            <h6>@comment.Text</h6>
+            <h7><i class="fa fa-calendar-check-o"></i> @comment.Date</h7>
         </div>
     }
 </div>
 @if(User.IsInRole("Admin") || User.IsInRole("User"))
 {
+    <div id="notification" style="display: none"></div>
     <input type="text" id="newComment" />
     <button type="button" class="btn btn-success" id="newCommentButton">Add comment</button>
-    <div id="notification"></div>
 }
 
 
@@ -96,7 +112,6 @@
             </div>
             <div class="modal-footer">
                 <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Log in</a>
-                @*<button type="button" class="btn btn-primary" id="login-button">Log in</button>*@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -104,21 +119,23 @@
 </div>
 
 <script>
-    var connection = new signalR.HubConnectionBuilder().withUrl("/Comment").build();
+    var connection = new signalR.HubConnectionBuilder().withUrl("/Comment?itemId=@item.Id").build();
     var _likeCount = 0;
 
     connection.on("ReceiveComment", function (userName, text, date) {
         var newComment = `<div class="comment">
-                <h4>${userName}</h4>
-                <h5>${text}</h5>
-                <h5>${date}</h5>
-                <hr/>
-            </div>`
+            <h5>${userName}</h5>
+            <h6>${text}</h6>
+            <h7><i class="fa fa-calendar-check-o"></i> ${date}</h7>
+        </div>`
         $("#comments").append(newComment);
     });
 
     $("#newCommentButton").click(function() {
         var commentText = $("#newComment").val();
+        $("#newComment").val("");
+        $("#notification").text("The comment was sent").show();
+        setTimeout(() => $("#notification").hide(), 2000);
         var date = new Date().toLocaleString('ru-RU', {
             day: 'numeric',
             month: 'numeric',
@@ -137,10 +154,7 @@
                 date: date
             },
             success: function () {
-                connection.invoke("SendComment", "@userName", commentText, date);
-                $("#newComment").val("");
-                $("#notification").text("The comment was sent!");
-                setTimeout(() => $("#notification").text(""), 2000);
+                connection.invoke("SendComment", "@userName", commentText, date, "@item.Id");
             }
         });
     });
@@ -158,7 +172,7 @@
                 $("#likeButton").hide();
                 $("#dislikeButton").show();
                 _likeCount = _likeCount + 1;
-                connection.invoke("ChangeLikeCount", _likeCount);
+                connection.invoke("ChangeLikeCount", _likeCount, "@item.Id");
                 //$("#like").html(`<i class="fa fa-heart" id="dislikeButton"></i>`);
                 $("#likeCount").text(_likeCount);
             }
@@ -174,7 +188,7 @@
                 $("#dislikeButton").hide();
                 $("#likeButton").show();
                 _likeCount = _likeCount - 1;
-                connection.invoke("ChangeLikeCount", _likeCount);
+                connection.invoke("ChangeLikeCount", _likeCount, "@item.Id");
                 //$("#like").html(`<i class="fa fa-heart-o" id="likeButton"></i>`);
                 $("#likeCount").text(_likeCount);
             }

@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -18,7 +18,21 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 40px;
+    padding-top: 15px;
+    border-radius: 15px;
+    margin-top: 70px;
+}
+
+.navbar {
+    position: fixed;
+    width: 100%;
+    margin-top: -70px;
 }
 
 .table {
@@ -74,7 +88,53 @@ body {
 #like {
     color: red;
     font-size: 20px;
+    padding: 10px 10px;
 }
 #like:hover {
     cursor: pointer;
+}
+
+.field {
+    font-weight: 700;
+    padding: 2px 10px;
+    border-bottom: 1px dotted lightgreen;
+    color: darkgreen
+}
+.comment {
+    background-color: ghostwhite;
+    border: 1px solid lightgreen;
+    max-width: 500px;
+    border-radius: 20px;
+    padding: 10px 20px;
+    margin: 0px 5px 15px 0px;
+}
+.comment h5 {
+    color: green;
+}
+
+#notification {
+    background-color: lightgreen;
+    color: green;
+    font-style: italic;
+    padding: 2px 15px;
+    border-radius: 10px;
+    width: 210px;
+    margin-bottom: 10px;
+}
+    #notification::before {
+        content: "✓ ";
+    }
+
+.fvalue {
+    padding: 2px 10px;
+    border-bottom: 1px dotted lightgreen;
+    border-left: 1px dotted lightgreen;
+}
+
+.changeTheme {
+    border: none;
+    background: none;
+    font-size: 30px;
+    padding: 0;
+    margin-left: 10px;
 }

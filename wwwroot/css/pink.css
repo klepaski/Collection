@@ -1,0 +1,59 @@
+﻿body {
+    background: url("/images/leopard2.png") repeat;
+}
+.container {
+    background: rgba(250, 240, 240, 0.7);
+}
+
+h1 {
+    color: darkred;
+}
+
+.field {
+    border-bottom: 1px dotted lightpink;
+    color: crimson;
+}
+.fvalue {
+    border-bottom: 1px dotted lightpink;
+    border-left: 1px dotted lightpink;
+}
+
+a {
+    color: mediumvioletred;
+}
+
+.comment {
+    background: rgba(201, 138, 138, 0.2);
+    border: 1px solid pink;
+}
+.comment h5 {
+    color: crimson;
+}
+
+#notification {
+    background-color: lightpink;
+    color: green;
+}
+
+.btn-success {
+    background-color: crimson;
+    border: 1px solid crimson;
+    color: white;
+}
+    .btn-success:hover {
+        background-color: deeppink;
+        border: 1px solid deeppink;
+        color: white;
+    }
+
+.table {
+    border: 10px solid salmon;
+    border-top: 5px solid salmon;
+}
+    .table th {
+        background: salmon;
+    }
+    .table td {
+        border-bottom: 5px solid salmon;
+        border-right: 5px solid salmon;
+    }

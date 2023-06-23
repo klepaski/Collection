@@ -1,0 +1,45 @@
+﻿:root {
+    --color-primary: #8AC9AD;
+}
+
+body {
+    background: url("/images/background.jpg") repeat;
+}
+.container {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 40px;
+}
+
+.table {
+    border: 10px solid var(--color-primary);
+    border-top: 5px solid var(--color-primary);
+}
+    .table th {
+        background: var(--color-primary);
+    }
+    .table td {
+        border-bottom: 5px solid var(--color-primary);
+        border-right: 5px solid var(--color-primary);
+    }
+
+.field {
+    border-bottom: 1px dotted lightgreen;
+    color: darkgreen
+}
+.comment {
+    background: rgba(138, 201, 173, 0.2);
+    border: 1px solid lightgreen;
+}
+.comment h5 {
+    color: green;
+}
+
+#notification {
+    background-color: lightgreen;
+    color: green;
+}
+
+.fvalue {
+    border-bottom: 1px dotted lightgreen;
+    border-left: 1px dotted lightgreen;
+}

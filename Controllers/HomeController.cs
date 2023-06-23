@@ -47,7 +47,7 @@ namespace ToyCollection.Controllers
             Item item = await _db.Items.FindAsync(itemId);
             Collection collection = await _db.Collections.FindAsync(item.CollectionId);
             Console.WriteLine(collection.Name);
-            List<Comment> comments = await _db.Comments.Where(c => c.ItemId.Equals(itemId)).Include(c => c.User).ToListAsync();
+            List<Comment> comments = await _db.Comments.Where(c => c.ItemId.Equals(itemId)).Include(c => c.User).OrderBy(c => c.Date).ToListAsync();
             List<Like> likes = await _db.Likes.Where(l => l.ItemId.Equals(itemId)).Include(l => l.User).ToListAsync();
             Dictionary<string, string> customFields = GetCustomFields(collection);
 
