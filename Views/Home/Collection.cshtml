@@ -1,0 +1,66 @@
+﻿@{
+    Collection? collection = ViewBag.Collection;
+    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    string? userName = User.FindFirstValue(ClaimTypes.Name);
+    bool isAuthorised = (User.IsInRole("User") || User.IsInRole("Admin")) ? true : false;
+    ViewData["Title"] = l["Collection"] + $" {collection.Name}";
+}
+
+<h1>@l["Collection"] @collection.Name</h1>
+<hr/>
+@if (@collection == null)
+{
+    <p>@l["CollectionNoExist"]</p>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        @{string url = (collection.ImageUrl != null) ? collection.ImageUrl : "/bear.png";}
+        <div style="aspect-ratio:1"><img src="@url" id="pic-@collection.Id" class="collectionPic" /></div>
+    </div>
+    <div class="col-md-8 row">
+        <table>
+            <tr>
+                <td class="field">@l["Name"] </td>
+                <td class="fvalue">@collection.Name</td>
+            </tr>
+            <tr>
+                <td class="field">@l["Description"] </td>
+                <td class="fvalue">@collection.Description</td>
+            </tr>
+            <tr>
+                <td class="field">@l["Theme"] </td>
+                <td class="fvalue">@collection.Theme</td>
+            </tr>
+            <tr>
+                <td class="field">@l["Owner"] </td>
+                <td class="fvalue">@collection.User.UserName</td>
+            </tr>
+            <tr>
+                <td class="field">@l["Items"] </td>
+                <td class="fvalue">
+                    @if (collection.Items.Count > 0)
+                    {
+                        @foreach (var item in collection.Items)
+                        {
+                            <a href="/Home/Item?itemId=@item.Id">
+                                @item.Name
+                            </a>
+                            <text>, </text>
+                        }
+                    }
+                    else
+                    {
+                        <text>-</text>
+                    }
+                </td>
+            </tr>
+        </table>
+
+
+        @if (User.IsInRole("Admin") || @collection.UserId == userId)
+        {
+            <a class="btn btn-success" href="/User/Collections?userId=@collection.User.Id" style="height:40px;">@l["EditCollection"]</a>
+        }
+    </div>
+</div>

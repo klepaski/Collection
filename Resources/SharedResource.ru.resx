@@ -138,6 +138,9 @@
   <data name="Collection" xml:space="preserve">
     <value>Коллекция</value>
   </data>
+  <data name="CollectionNoExist" xml:space="preserve">
+    <value>Эта коллекция не существует</value>
+  </data>
   <data name="CommentNotification" xml:space="preserve">
     <value>Ваш комментарий отправлен</value>
   </data>
@@ -153,17 +156,29 @@
   <data name="CustomFields" xml:space="preserve">
     <value>Настраиваемые поля</value>
   </data>
+  <data name="Dark" xml:space="preserve">
+    <value>Темная тема</value>
+  </data>
   <data name="Date" xml:space="preserve">
     <value>Дата</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Описание</value>
   </data>
+  <data name="EditCollection" xml:space="preserve">
+    <value>Редактировать коллекцию</value>
+  </data>
   <data name="EditItem" xml:space="preserve">
     <value>Изменить элемент</value>
   </data>
+  <data name="EditItems" xml:space="preserve">
+    <value>Редактировать элементы коллекции</value>
+  </data>
   <data name="GrantAdmin" xml:space="preserve">
     <value>Назначить администратором</value>
+  </data>
+  <data name="Gray" xml:space="preserve">
+    <value>Серая тема</value>
   </data>
   <data name="Hello" xml:space="preserve">
     <value>Привет</value>
@@ -179,6 +194,15 @@
   </data>
   <data name="Item" xml:space="preserve">
     <value>Элемент коллекции</value>
+  </data>
+  <data name="ItemNoExist" xml:space="preserve">
+    <value>Этот элемент коллекции не существует</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Элементы коллекции</value>
+  </data>
+  <data name="ItemsFromCollection" xml:space="preserve">
+    <value>Элементы коллекции</value>
   </data>
   <data name="Julia" xml:space="preserve">
     <value>Юля Чистякова</value>
@@ -198,9 +222,6 @@
   <data name="MyItems" xml:space="preserve">
     <value>Мои элементы коллекции</value>
   </data>
-  <data name="MyItemsFromCollection" xml:space="preserve">
-    <value>Мои элементы из коллекции</value>
-  </data>
   <data name="MyWebsite" xml:space="preserve">
     <value>Коллекции</value>
   </data>
@@ -210,6 +231,9 @@
   </data>
   <data name="NoCollections" xml:space="preserve">
     <value>Вы еще не создали ни одной коллекции</value>
+  </data>
+  <data name="NoComments" xml:space="preserve">
+    <value>Комментариев еще нет</value>
   </data>
   <data name="NoItems" xml:space="preserve">
     <value>Вы еще не создали ни одного элемента коллекции</value>
@@ -232,11 +256,17 @@
   <data name="PersonalPage" xml:space="preserve">
     <value>Личный кабинет</value>
   </data>
+  <data name="Pink" xml:space="preserve">
+    <value>Розовая тема</value>
+  </data>
   <data name="Privacy" xml:space="preserve">
     <value>Приватность</value>
   </data>
   <data name="Register" xml:space="preserve">
     <value>Зарегистрироваться</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Запомнить меня</value>
   </data>
   <data name="RevokeAdmin" xml:space="preserve">
     <value>Забрать права администратора</value>

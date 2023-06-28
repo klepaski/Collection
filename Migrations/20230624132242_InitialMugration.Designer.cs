@@ -12,8 +12,8 @@ using ToyCollection.Areas.Identity.Data;
 namespace ToyCollection.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230622184022_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20230624132242_InitialMugration")]
+    partial class InitialMugration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -361,6 +361,9 @@ namespace ToyCollection.Migrations
                     b.Property<string>("CollectionId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool?>("CustomBool1")
                         .HasColumnType("bit");

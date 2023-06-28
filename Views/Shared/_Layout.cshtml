@@ -13,40 +13,38 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">@l["MyWebsite"]</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><i class="fa fa-home"></i></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <button class="changeTheme" id="pink" style="color:salmon">♥</button>
-                <button class="changeTheme" id="dark" style="color: black">♥</button>
-                <button class="changeTheme" id="standart" style="color: gray">♥</button>
-
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+
+                    <select id="cultureList">
+                        <option value="en">EN</option>
+                        <option value="ru">RU</option>
+                    </select>
+
+                    <select id="themeList">
+                        <option value="standart">@l["Gray"]</option>
+                        <option value="pink">@l["Pink"]</option>
+                        <option value="dark">@l["Dark"]</option>
+                    </select>
+
                     <ul class="navbar-nav flex-grow-1">
-
-                        <li><a href="@Url.Action("SetLanguage", "Home", new { culture = "en", returnUrl = Context.Request.Path })">English</a></li>
-                        <li><a href="@Url.Action("SetLanguage", "Home", new { culture = "ru", returnUrl = Context.Request.Path })">Русский</a></li>
-
-
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">@l["Home"]</a>
-                        </li>
-
                         @if(User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">@l["Admin"]</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Admin">@l["Admin"]</a>
                             </li>
                         }
                         @if(User.IsInRole("User"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Index">@l["PersonalPage"]</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Collections" asp-route-userId="@User.FindFirstValue(ClaimTypes.NameIdentifier)">@l["PersonalPage"]</a>
                             </li>
                         }
-
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
@@ -70,10 +68,25 @@
     $(document).ready(function () {
         var theme = getCookie("theme");
         if (theme) setTheme(theme);
+        $("#themeList").val(theme);
+        var culture = getCookie(".AspNetCore.Culture").substring(4, 6);
+        $("#cultureList").val(culture);
     });
     
-    $(".changeTheme").click(function () {
-        var theme = $(this).attr('id');
+    $("#cultureList").change(function () {
+        var culture = $(this).val();
+        $.ajax({
+            url: '/Home/SetLanguage',
+            type: 'POST',
+            data: {culture: culture},
+            success: function (result) { console.log(`language ${culture}.`); window.location.reload(); },
+            error: function () {console.log('Error changing language.');}
+        });
+    });
+
+    $("#themeList").change(function () {
+        var theme = $(this).val();
+        console.log(theme);
         setTheme(theme);
         setCookie("theme", theme, 30);
     });

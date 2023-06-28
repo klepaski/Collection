@@ -1,5 +1,8 @@
 ﻿@{
     List<Theme> themes = ViewBag.Themes;
+    List<Collection> collections = ViewBag.Collections;
+    UserModel user = ViewBag.User;
+
     List<string> customFields = new() { 
         "CustomString1", "CustomString2", "CustomString3",
         "CustomInt1", "CustomInt2", "CustomInt3", 
@@ -9,10 +12,9 @@
 
     ViewData["Title"] = l["MyCollections"];
 }
-@model List<Collection>
 
-<h1>@l["MyCollections"]</h1>
-@if (@Model.Count == 0)
+<h1>@l["CollectionsOfUser"] - @user.UserName</h1>
+@if (@collections.Count == 0)
 {
     <p>@l["NoCollections"]</p>
 }
@@ -31,17 +33,20 @@
         </tr>
     </thead>
     <tbody>
-        @if (@Model.Count > 0)
+        @if (@collections.Count > 0)
         {
-            @foreach (var collection in Model)
+            @foreach (var collection in collections)
             {
                 <tr class="searchable">
                     <td>
-                        @{ string url = (collection.ImageUrl != null) ? collection.ImageUrl : "/bear.png"; }
+                        @{
+                            string url = (collection.ImageUrl != null) ? collection.ImageUrl : "/bear.png";
+                        }
                         <div style="aspect-ratio:1"><img src="@url" id="pic-@collection.Id" class="collectionPic" /></div>
+                        <a href="/User/Items?collectionId=@collection.Id">@l["EditItems"]</a>
                     </td>
                     <td>
-                        <a href="/User/Items?collectionId=@collection.Id"><span class="editable">@collection.Name</span></a>
+                        <a href="/Home/Collection?collectionId=@collection.Id"><span class="editable">@collection.Name</span></a>
                         <input type="text" class="form-coll" value="@collection.Name" style="display:none;" />
                     </td>
                     <td>
@@ -76,32 +81,30 @@
                         </div>
                     </td>
                     <td>
+                        <input type="hidden" name="collectionId" value="@collection.Id" />
                         <button class="btn btn-warning edit-collection"><i class="fa fa-pencil"></i></button>
                         <button class="btn btn-success save-changes" style="display:none;"><i class="fa fa-check"></i></button>
-                        <form asp-controller="User">
-                            <input type="hidden" name="collectionId" value="@collection.Id" />
-                            <button class="btn btn-danger delete-collection" asp-action="DeleteCollection" type="submit"><i class="fa fa-trash"></i></button>
-                        </form>
+                        <button class="btn btn-danger delete-collection"><i class="fa fa-trash"></i></button>
                     </td>
                 </tr>
             }
         }
-
+        @*--------Create new---------*@
         <tr data-disablesort='true'>
             <form asp-controller="User">
-                <td></td>
-                <td><input type="text" name="Name" placeholder="Name" class="form-coll" required/></td>
-                <td><textarea type="text" name="Description" placeholder="Description" class="text-coll" required></textarea></td>
-                <td>
-                    <select name="Theme" required>
-                        <option value="">@l["Theme"]</option>
+            <td><input type="hidden" name="UserId" value="@user.Id" /></td>
+            <td><input type="text" name="Name" placeholder="Name" class="form-coll" required /></td>
+            <td><textarea type="text" name="Description" placeholder="Description" class="text-coll" required></textarea></td>
+            <td>
+                <select name="Theme" required>
+                    <option value="">@l["Theme"]</option>
                         @foreach (var theme in themes)
                         {
-                            <option value="@theme.Name">@theme.Name</option>
+                        <option value="@theme.Name">@theme.Name</option>
                         }
-                    </select>
-                </td>
-                <td>
+                </select>
+            </td>
+            <td>
                 <div class="row">
                     <div class="col-md-3">
                         <div>@l["String"]: </div>
@@ -111,18 +114,21 @@
                         <div>@l["Date"]: </div>
                     </div>
                     <div class="row col-md-9">
-                        @foreach (var field in customFields)
-                        {
+                            @foreach (var field in customFields)
+                            {
                             <input type="text" class="form-coll-custom col-md-4" name="@field" />
-                        }
+                            }
                     </div>
                 </div>
-                </td>
-                <td><button class="btn btn-success" asp-action="CreateCollection" type="submit"><i class="fa fa-plus"></i></button></td>
+            </td>
+            <td><button class="btn btn-success" asp-action="CreateCollection" type="submit"><i class="fa fa-plus"></i></button></td>
             </form>
         </tr>
     </tbody>
 </table>
+
+
+@*--------Modal window---------*@
 
 <div id="upload-modal" class="modal fade">
     <div class="modal-dialog">
@@ -147,7 +153,7 @@
 
 
 <script>
-    $('.collectionPic').click(function () {
+    $('.table').on('click', '.collectionPic', function () {
         var row = $(this).closest('tr');
         var collectionId = row.find('input[name="collectionId"]').val();
         $('#upload-modal').modal('show');
@@ -171,7 +177,7 @@
     });
 
 
-    $('.edit-collection').click(function () {
+    $('.table').on('click', '.edit-collection', function () {
         var row = $(this).closest('tr');
         row.find('.editable').hide();
         row.find('input').show();
@@ -182,7 +188,7 @@
         row.find('.delete-collection').hide();
     });
 
-    $('.save-changes').click(function () {
+    $('.table').on('click', '.save-changes', function () {
         var row = $(this).closest('tr');
         var collectionId = row.find('input[name="collectionId"]').val();
         var name = row.find('input:eq(0)').val();
@@ -254,6 +260,20 @@
                 row.find('.save-changes').hide();
                 row.find('.edit-collection').show();
                 row.find('.delete-collection').show();
+            }
+        });
+    });
+
+
+    $('.table').on('click', '.delete-collection', function () {
+        var row = $(this).closest('tr');
+        var collectionId = row.find('input[name="collectionId"]').val();
+        $.ajax({
+            url: '/User/DeleteCollection',
+            type: 'POST',
+            data: {collectionId: collectionId},
+            success: function () {
+                row.remove();
             }
         });
     });

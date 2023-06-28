@@ -138,6 +138,12 @@
   <data name="Collection" xml:space="preserve">
     <value>Collection</value>
   </data>
+  <data name="CollectionNoExist" xml:space="preserve">
+    <value>This collection doesn't exist</value>
+  </data>
+  <data name="CollectionsOfUser" xml:space="preserve">
+    <value>Collections of user</value>
+  </data>
   <data name="CommentNotification" xml:space="preserve">
     <value>Your comment was sent</value>
   </data>
@@ -153,17 +159,29 @@
   <data name="CustomFields" xml:space="preserve">
     <value>Custom fields</value>
   </data>
+  <data name="Dark" xml:space="preserve">
+    <value>Dark theme</value>
+  </data>
   <data name="Date" xml:space="preserve">
     <value>Date</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Description</value>
   </data>
+  <data name="EditCollection" xml:space="preserve">
+    <value>Edit collection</value>
+  </data>
   <data name="EditItem" xml:space="preserve">
     <value>Edit item</value>
   </data>
+  <data name="EditItems" xml:space="preserve">
+    <value>Edit items</value>
+  </data>
   <data name="GrantAdmin" xml:space="preserve">
     <value>Grant admin</value>
+  </data>
+  <data name="Gray" xml:space="preserve">
+    <value>Gray theme</value>
   </data>
   <data name="Hello" xml:space="preserve">
     <value>Hello</value>
@@ -179,6 +197,16 @@
   </data>
   <data name="Item" xml:space="preserve">
     <value>Item</value>
+  </data>
+  <data name="ItemNoExist" xml:space="preserve">
+    <value>This item doesn't exist</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Items</value>
+    <comment>Элементы коллекции</comment>
+  </data>
+  <data name="ItemsFromCollection" xml:space="preserve">
+    <value>Items from collection</value>
   </data>
   <data name="Julia" xml:space="preserve">
     <value>Julia Chistyakova</value>
@@ -198,9 +226,6 @@
   <data name="MyItems" xml:space="preserve">
     <value>My items</value>
   </data>
-  <data name="MyItemsFromCollection" xml:space="preserve">
-    <value>My items from collection</value>
-  </data>
   <data name="MyWebsite" xml:space="preserve">
     <value>ToyCollection</value>
   </data>
@@ -210,6 +235,9 @@
   </data>
   <data name="NoCollections" xml:space="preserve">
     <value>You haven't created any collections yet</value>
+  </data>
+  <data name="NoComments" xml:space="preserve">
+    <value>There is no comments yet</value>
   </data>
   <data name="NoItems" xml:space="preserve">
     <value>You haven't created any items yet</value>
@@ -232,11 +260,17 @@
   <data name="PersonalPage" xml:space="preserve">
     <value>Personal Page</value>
   </data>
+  <data name="Pink" xml:space="preserve">
+    <value>Pink theme</value>
+  </data>
   <data name="Privacy" xml:space="preserve">
     <value>Privacy</value>
   </data>
   <data name="Register" xml:space="preserve">
     <value>Register</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Remember me</value>
   </data>
   <data name="RevokeAdmin" xml:space="preserve">
     <value>Revoke admin</value>

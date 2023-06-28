@@ -1,5 +1,71 @@
 ﻿@{
+    List<Item> latest_5_items = ViewBag.Latest_5_tems;
+    List<Collection> biggest_5_collections = ViewBag.Biggest_5_collections;
+    List<Tag> tags = ViewBag.Tags;
     ViewData["Title"] = @l["HomePage"];
 }
 
-<h1>@l["Julia"]</h1>
+@*ПЕРЕВЕСТИ*@
+
+<h1>5 Last Added Items:</h1>
+<div class="row">
+    @if (latest_5_items.Count > 0)
+    {
+        @foreach (var item in latest_5_items)
+        {
+            <div style="width:20%">
+                <a href="/Home/Item?itemId=@item.Id">
+                    <h5>@item.Name</h5>
+                </a>
+                <h7>
+                    <b>Collection: </b><a href="/Home/Collection?collectionId=@item.CollectionId">@item.Collection.Name</a><br />
+                    <b>Owner: </b>@item.User.UserName<br />
+                    @*<b>Tags: </b>*@
+                </h7>
+            </div>
+        }
+    }
+    else
+    {
+        <h5>@l["ItemNoExist"]</h5>
+    }
+</div>
+
+<br/><hr />
+<h1>5 Biggest Collections:</h1>
+<div class="row">
+    @if (biggest_5_collections.Count > 0)
+    {
+        @foreach (var collection in biggest_5_collections)
+        {
+            <div style="width:20%">
+                <h5><a href="/Home/Collection?collectionId=@collection.Id">@collection.Name</a><br /></h5>
+                <h7>
+                    <b>Theme: </b>@collection.Theme<br/>
+                    <b>Owner: </b>@collection.User.UserName
+                    <div style="aspect-ratio:1"><img src="@collection.ImageUrl" class="collectionPicHome" /></div>
+                    @collection.Description<br />
+                </h7>
+            </div>
+        }
+    }
+    else
+    {
+        <h5>@l["CollectionNoExist"]</h5>
+    }
+</div>
+
+
+<hr />
+<h1>Tags:</h1>
+@if (tags.Count > 0)
+{
+    @foreach (var tag in tags)
+    {
+        <h5> @tag.Name </h5>
+    }
+}
+else
+{
+    <h5>There is no tags yet</h5>
+}

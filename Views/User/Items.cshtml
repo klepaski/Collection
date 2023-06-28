@@ -1,17 +1,10 @@
 ﻿@{
-    string collectionId = ViewBag.CollectionId;
-    List<Item> items = ViewBag.Items;
-    string collectionName = ViewBag.CollectionName;
+    Collection? collection = ViewBag.Collection;
     Dictionary<string, string> customFields = ViewBag.CustomFields;
-    ViewData["Title"] = @l["MyItems"];
+    ViewData["Title"] = l["MyItems"];
 }
 
-<h1>@l["MyItemsFromCollection"] <a href="/User/Index">@collectionName</a></h1>
-@if (@items.Count == 0)
-{
-    <p>@l["NoItems"]</p>
-}
-
+<h1>@l["ItemsFromCollection"] <a href="/User/Collections?userId=@collection.User.Id">@collection.Name</a></h1>
 <input class="form-control" id="myInput" type="text" placeholder="@l["Search"]">
 <br />
 <table class="table sortable">
@@ -27,102 +20,104 @@
         </tr>
     </thead>
     <tbody>
-        @if (@items.Count > 0)
+        @if (@collection.Items.Count == 0)
         {
-            @foreach (var item in items)
-            {
-                <tr class="searchable">
-                    <td>
-                        <a href="/Home/Item?itemId=@item.Id"><span class="editable">@item.Name</span></a>
-                        <input type="text" class="ans form-coll" value="@item.Name" style="display:none;" />
-                    </td>
-                    <td>
-                        <span class="editable">@item.Tags</span>
-                        <textarea type="text" class="ans text-coll" style="display:none;">@item.Tags</textarea>
-                    </td>
-
-                    @foreach (var field in customFields)
-                    {
-                        <td>
-                            @if (field.Key.Contains("String"))
-                            {
-                                <span class="editable @field.Key">@item[@field.Key]</span>
-                                <input type="text" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
-                            }
-                            @if (field.Key.Contains("Int"))
-                            {
-                                <span class="editable @field.Key">@item[@field.Key]</span>
-                                <input type="number" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
-                            }
-                            @if (field.Key.Contains("Text"))
-                            {
-                                <span class="editable @field.Key">@item[@field.Key]</span>
-                                <textarea type="text" class="ans text-coll" id="@field.Key" style="display:none;">@item[@field.Key]</textarea>
-                            }
-                            @if (field.Key.Contains("Bool"))
-                            {
-                                @if (@item[@field.Key].ToString() == "True")
-                                {
-                                    <span class="editable @field.Key">Yes</span>
-                                    <input type="checkbox" checked class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
-                                }
-                                else
-                                {
-                                    <span class="editable @field.Key">No</span>
-                                    <input type="checkbox" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
-                                }
-                            }
-                            @if (field.Key.Contains("Date"))
-                            {
-                                <span class="editable @field.Key">@Convert.ToDateTime(item[@field.Key]).ToString("yyyy-MM-dd")</span>
-                                <input type="date" class="ans form-coll" value="@Convert.ToDateTime(item[@field.Key]).ToString("yyyy-MM-dd")" id="@field.Key" style="display:none;" />
-                            }
-                        </td>
-                    }
-                    <td>
-                        <button class="btn btn-warning edit-item"><i class="fa fa-pencil"></i></button>
-                        <button class="btn btn-success save-changes" style="display:none;"><i class="fa fa-check"></i></button>
-                        <form asp-controller="User">
-                            <input type="hidden" name="itemId" value="@item.Id" />
-                            <button class="btn btn-danger delete-item" asp-action="DeleteItem" type="submit"><i class="fa fa-trash"></i></button>
-                        </form>
-                    </td>
-                </tr>
-            }
+            <p>@l["NoItems"]</p>
         }
+        else
+        {
+            @foreach (var item in collection.Items)
+                {
+                    <tr class="searchable">
+                        <td>
+                            <a href="/Home/Item?itemId=@item.Id"><span class="editable">@item.Name</span></a>
+                            <input type="text" class="ans form-coll" value="@item.Name" style="display:none;" />
+                        </td>
+                        <td>
+                            <span class="editable">@item.Tags</span>
+                            <textarea type="text" class="ans text-coll" style="display:none;">@item.Tags</textarea>
+                        </td>
 
+                        @foreach (var field in customFields)
+                        {
+                            <td>
+                                @if (field.Key.Contains("String"))
+                                {
+                                    <span class="editable @field.Key">@item[@field.Key]</span>
+                                    <input type="text" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
+                                }
+                                @if (field.Key.Contains("Int"))
+                                {
+                                    <span class="editable @field.Key">@item[@field.Key]</span>
+                                    <input type="number" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
+                                }
+                                @if (field.Key.Contains("Text"))
+                                {
+                                    <span class="editable @field.Key">@item[@field.Key]</span>
+                                    <textarea type="text" class="ans text-coll" id="@field.Key" style="display:none;">@item[@field.Key]</textarea>
+                                }
+                                @if (field.Key.Contains("Bool"))
+                                {
+                                    @if (item[field.Key].ToString() == "True")
+                                    {
+                                        <span class="editable @field.Key">Yes</span>
+                                        <input type="checkbox" checked class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
+                                    }
+                                    else
+                                    {
+                                        <span class="editable @field.Key">No</span>
+                                        <input type="checkbox" class="ans form-coll" value="@item[@field.Key]" id="@field.Key" style="display:none;" />
+                                    }
+                                }
+                                @if (field.Key.Contains("Date"))
+                                {
+                                    <span class="editable @field.Key">@Convert.ToDateTime(item[@field.Key]).ToString("yyyy-MM-dd")</span>
+                                    <input type="date" class="ans form-coll" value="@Convert.ToDateTime(item[@field.Key]).ToString("yyyy-MM-dd")" id="@field.Key" style="display:none;" />
+                                }
+                            </td>
+                        }
+                        <td>
+                            <input type="hidden" name="itemId" value="@item.Id" />
+                            <button class="btn btn-warning edit-item"><i class="fa fa-pencil"></i></button>
+                            <button class="btn btn-success save-changes" style="display:none;"><i class="fa fa-check"></i></button>
+                            <button class="btn btn-danger delete-item"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>
+            }            
+        }
+        @*--------Create new---------*@
         <tr data-disablesort='true'>
             <form asp-controller="User">
-                <input type="hidden" name="collectionId" value="@collectionId" />
-                <td><input type="text" name="Name" placeholder="Name" class="form-coll" required/></td>
-                <td><textarea type="text" name="Tags" placeholder="Tags" class="text-coll" required></textarea></td>
-                
+            <input type="hidden" name="collectionId" value="@collection.Id" />
+            <td><input type="text" name="Name" placeholder="Name" class="form-coll" required /></td>
+            <td><textarea type="text" name="Tags" placeholder="Tags" class="text-coll" required></textarea></td>
+
                 @foreach (var field in customFields)
                 {
-                    <td>
+                <td>
                         @if (field.Key.Contains("String"))
                         {
-                            <input type="text" class="form-coll" name="@field.Key" required />
+                        <input type="text" class="form-coll" name="@field.Key" required />
                         }
                         @if (field.Key.Contains("Int"))
                         {
-                            <input type="number" class="form-coll" name="@field.Key" required />
+                        <input type="number" class="form-coll" name="@field.Key" required />
                         }
                         @if (field.Key.Contains("Text"))
                         {
-                            <textarea type="text" class="text-coll" name="@field.Key" required ></textarea>
+                        <textarea type="text" class="text-coll" name="@field.Key" required></textarea>
                         }
                         @if (field.Key.Contains("Bool"))
                         {
-                            <input type="checkbox" class="form-coll" name="@field.Key" />
+                        <input type="checkbox" class="form-coll" name="@field.Key" />
                         }
                         @if (field.Key.Contains("Date"))
                         {
-                            <input type="date" class="form-coll" name="@field.Key" required />
+                        <input type="date" class="form-coll" name="@field.Key" required />
                         }
-                    </td>
+                </td>
                 }
-                <td><button class="btn btn-success" asp-action="CreateItem" type="submit"><i class="fa fa-plus"></i></button></td>
+            <td><button class="btn btn-success" asp-action="CreateItem" type="submit"><i class="fa fa-plus"></i></button></td>
             </form>
         </tr>
     </tbody>
@@ -130,7 +125,7 @@
 
 
 <script>
-    $('.edit-item').click(function () {
+    $('.table').on('click', '.edit-item', function () {
         var row = $(this).closest('tr');
         row.find('.editable').hide();
         row.find('.ans').show();
@@ -139,12 +134,11 @@
         row.find('.delete-item').hide();
     });
 
-    $('.save-changes').click(function () {
+    $('.table').on('click', '.save-changes', function () {
         var row = $(this).closest('tr');
         var itemId = row.find('input[name="itemId"]').val();
         var name = row.find('input:eq(0)').val();
         var tags = row.find('textarea').val();//
-
         var customString1 = row.find('#CustomString1').val();
         var customString2 = row.find('#CustomString2').val();
         var customString3 = row.find('#CustomString3').val();
@@ -168,7 +162,6 @@
                 id: itemId,
                 name: name,
                 tags: tags,//
-
                 customString1: customString1,
                 customString2: customString2,
                 customString3: customString3,
@@ -203,7 +196,6 @@
                 row.find('.CustomDate1').text(customDate1);
                 row.find('.CustomDate2').text(customDate2);
                 row.find('.CustomDate3').text(customDate3);
-
                 row.find('.editable').show();
                 row.find('input').hide();
                 row.find('textarea').hide();
@@ -211,6 +203,17 @@
                 row.find('.edit-item').show();
                 row.find('.delete-item').show();
             }
+        });
+    });
+
+    $('.table').on('click', '.delete-item', function () {
+        var row = $(this).closest('tr');
+        var itemId = row.find('input[name="itemId"]').val();
+        $.ajax({
+            url: '/User/DeleteItem',
+            type: 'POST',
+            data: { itemId: itemId },
+            success: function () {row.remove();}
         });
     });
 </script>

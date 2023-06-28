@@ -16,6 +16,7 @@ namespace ToyCollection.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         public string Name { get; set; }
+        public DateTime CreateDate { get; set; }    //
 
         public string CollectionId { get; set; }
         public Collection Collection { get; set; }

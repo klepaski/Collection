@@ -1,15 +1,12 @@
 ﻿@{
-    Item? item = ViewBag.Item;
-    Collection? collection = ViewBag.Collection;
-    List<Comment> comments = ViewBag.Comments;
-    List<Like> likes = ViewBag.Likes;
+    Item item = ViewBag.Item;
     Dictionary<string, string> customFields = ViewBag.CustomFields;
     string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     string? userName = User.FindFirstValue(ClaimTypes.Name);
     bool isAuthorised = (User.IsInRole("User") || User.IsInRole("Admin")) ? true : false;
 
     bool isLiked = false;
-    foreach (var like in likes)
+    foreach (var like in item.Likes)
     {
         if (like.User.Id == userId)
         {
@@ -24,13 +21,13 @@
 <hr/>
 @if (@item == null)
 {
-    <p>This item doesn't exist</p>
+    <p>@l["ItemNoExist"]</p>
 }
 
 <div class="row">
     <div class="col-md-4">
-        @{string url = (collection.ImageUrl != null) ? collection.ImageUrl : "/bear.png";}
-        <div style="aspect-ratio:1"><img src="@url" id="pic-@collection.Id" class="collectionPic" /></div>
+        @{string url = (item.Collection.ImageUrl != null) ? item.Collection.ImageUrl : "/bear.png";}
+        <div style="aspect-ratio:1"><img src="@url" id="pic-@item.CollectionId" class="collectionPic" /></div>
     </div>
     <div class="col-md-8 row">
         <table>
@@ -49,15 +46,14 @@
                     <td class="fvalue">@item[@field.Key]</td>
                 </tr>
             }
-            @*<tr>
+            <tr>
                 <td class="field">@l["Owner"]: </td>
-            <td class="fvalue">@item.User.UserName</td>
-            </tr>*@
+                <td class="fvalue">@item.User.UserName</td>
+            </tr>
             <tr>
                 <td class="field">@l["Collection"] </td>
-                <td class="fvalue"><a href="/">@collection.Name</a></td>
+                <td class="fvalue"><a href="/Home/Collection?collectionId=@item.CollectionId">@item.Collection.Name</a></td>
             </tr>
-            @*ДОБАВИТЬ ССЫЛКУ НА ПРОСМОТР КОЛЛЕКЦИИ*@
         </table>
 
         <div class="row">
@@ -66,33 +62,40 @@
                 {
                     <i class="fa fa-heart" id="dislikeButton"></i>
                     <i class="fa fa-heart-o" id="likeButton" style="display:none"></i>
-                    <span id="likeCount">@likes.Count</span>
+                    <span id="likeCount">@item.Likes.Count</span>
                 }
                 else
                 {
                     <i class="fa fa-heart" id="dislikeButton" style="display:none"></i>
                     <i class="fa fa-heart-o" id="likeButton"></i>
-                    <span id="likeCount">@likes.Count</span>
+                    <span id="likeCount"> @item.Likes.Count</span>
                 }
             </div>
         </div>
 
-        @if (User.IsInRole("Admin") || @item.UserId == userId) @*ДОБАВИТЬ ПРОВЕРКУ ХОЗЯИНА АЙТЕМА*@
+        @if (User.IsInRole("Admin") || @item.UserId == userId)
         {
-            <a class="btn btn-success" href="/User/Items?collectionId=@collection.Id">@l["EditItem"]</a>
+            <a class="btn btn-success" href="/User/Items?collectionId=@item.CollectionId">@l["EditItem"]</a>
         }
     </div>
 </div>
 <hr/>
 <h1>@l["Comments"]:</h1>
 <div id="comments">
-    @foreach (var comment in comments)
+    @if (item.Comments.Count > 0)
     {
-        <div class="comment">
-            <h5>@comment.User.UserName</h5>
-            <h6>@comment.Text</h6>
-            <h7><i class="fa fa-calendar-check-o"></i> @comment.Date</h7>
-        </div>
+        @foreach (var comment in item.Comments)
+        {
+            <div class="comment">
+                <h5>@comment.User.UserName</h5>
+                <h6>@comment.Text</h6>
+                <h7><i class="fa fa-calendar-check-o"></i> @comment.Date</h7>
+            </div>
+        }
+    }
+    else
+    {
+        <h3>@l["NoComments"]</h3>
     }
 </div>
 @if(User.IsInRole("Admin") || User.IsInRole("User"))
@@ -202,7 +205,7 @@
 
     connection.start().then(function () {
         console.log("Connected!");
-        _likeCount = @likes.Count;
+        _likeCount = @item.Likes.Count;
     }).catch(function (err) {
         console.error(err.toString());
     });

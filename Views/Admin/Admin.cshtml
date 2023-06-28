@@ -1,0 +1,203 @@
+﻿@{
+    ViewData["Title"] = "Admin Page";
+    List<Theme> themes = ViewBag.Themes;
+}
+@model List<UserViewModel>
+
+<div class="row">
+    <div class="col-md-8">
+        <h1>@l["Users"]</h1>
+        @if (@Model.Count > 0)
+        {
+            <div class="d-flex align-items-center m-2">
+                <button id="deleteButton" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+                <button id="blockButton" class="btn btn-warning mx-2"><i class="fa fa-lock"></i></button>
+                <button id="unblockButton" class="btn btn-success"><i class="fa fa-unlock-alt"></i></button>
+                <button id="grantButton" class="btn btn-success mx-2">@l["GrantAdmin"]</button>
+                <button id="revokeButton" class="btn btn-warning">@l["RevokeAdmin"]</button>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%"><input type="checkbox" id="mainSwitcher" /></th>
+                        <th style="width: 22%">@l["UserName"]</th>
+                        <th style="width: 33%">Email</th>
+                        <th style="width: 17%">@l["Status"]</th>
+                        <th style="width: 20%">@l["Role"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td><input type="checkbox" id="userId" value="@user.Id" /></td>
+                            <td>@user.UserName</td>
+                            <td>@user.Email</td>
+                            <td id="status">
+                                @if (user.IsBlocked)
+                                {
+                                    <div class="text-danger">@l["Blocked"]</div>
+                                }
+                                else
+                                {
+                                    <div class="text-success">@l["Active"]</div>
+                                }
+                            </td>
+                            <td id="roles">
+                                @foreach (var role in @user.Roles)
+                                {
+                                    <div>@role</div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        }
+        else
+        {
+            <p>@l["NoUsers"]</p>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <br /><br />
+        <h1>@l["Themes"]</h1>
+        @if (@themes.Count == 0)
+        {
+            <p>@l["NoThemes"]</p>
+        }
+        <table class="table themes">
+            @if (@themes.Count > 0)
+            {
+                @foreach (var theme in themes)
+                {
+                    <tr class="themeEl">
+                        <td style="width: 78%" id="name">@theme.Name</td>
+                        <td style="width: 22%"><button id="deleteThemeButton" class="btn btn-danger"><i class="fa fa-trash"></i></button></td>
+                    </tr>
+                }
+            }
+            <tr>
+                <td><input type="text" class="form-control" id="newTheme" /></td>
+                <td><button id="addThemeButton" class="btn btn-success"><i class="fa fa-plus"></i></button></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    $("#deleteButton").click(function (event) {
+        event.preventDefault();
+        var ids = getIds();
+        $.ajax({
+            url: '/Admin/DeleteUser',
+            type: 'POST',
+            data: { ids: ids },
+            success: function () {
+                $("#userId:checked").map(function () {
+                    $(this).closest('tr').remove();
+                })
+            }
+        });
+    });
+
+    $("#blockButton").click(function (event) {
+        event.preventDefault();
+        var ids = getIds();
+        $.ajax({
+            url: '/Admin/BlockUser',
+            type: 'POST',
+            data: { ids: ids },
+            success: function () {
+                $("#userId:checked").map(function () {
+                    $(this).closest('tr').find('#status').html(`<div class="text-danger">@l["Blocked"]</div>`);
+                })
+            }
+        });
+    });
+
+    $("#unblockButton").click(function (event) {
+        event.preventDefault();
+        var ids = getIds();
+        $.ajax({
+            url: '/Admin/UnblockUser',
+            type: 'POST',
+            data: { ids: ids },
+            success: function () {
+                $("#userId:checked").map(function () {
+                    $(this).closest('tr').find('#status').html(`<div class="text-success">@l["Active"]</div>`);
+                })
+            }
+        });
+    });
+
+    $("#grantButton").click(function (event) {
+        event.preventDefault();
+        var ids = getIds();
+        $.ajax({
+            url: '/Admin/UnblockUser',
+            type: 'POST',
+            data: { ids: ids },
+            success: function () {
+                $("#userId:checked").map(function () {
+                    $(this).closest('tr').find('#roles').html(`<div>User</div><div>Admin</div>`);
+                })
+            }
+        });
+    });
+
+    $("#revokeButton").click(function (event) {
+        event.preventDefault();
+        var ids = getIds();
+        $.ajax({
+            url: '/Admin/UnblockUser',
+            type: 'POST',
+            data: { ids: ids },
+            success: function () {
+                $("#userId:checked").map(function () {
+                    $(this).closest('tr').find('#roles').html(`<div>User</div>`);
+                })
+            }
+        });
+    });
+
+    function getIds() {
+        var ids = $("#userId:checked").map(function () {
+            return $(this).val();
+        }).get();
+        return ids;
+    }
+
+    $('.themes').on('click', "#deleteThemeButton", function (event) {
+        event.preventDefault();
+        var themeName = $(this).closest('tr').find('#name').text();
+        $.ajax({
+            url: '/Admin/DeleteTheme',
+            type: 'POST',
+            data: { themeName: themeName },
+            success: function () {
+                $(`td:contains('${themeName}')`).closest('tr').remove();
+            }
+        });
+    });
+
+    $("#addThemeButton").click(function (event) {
+        event.preventDefault();
+        var themeName = $(this).closest('tr').find('#newTheme').val();
+        $.ajax({
+            url: '/Admin/AddTheme',
+            type: 'POST',
+            data: { themeName: themeName },
+            success: function () {
+                var newTr = `<tr class="themeEl">
+                    <td style="width: 78%" id="name">${themeName}</td>
+                    <td style="width: 22%"><button id="deleteThemeButton" class="btn btn-danger"><i class="fa fa-trash"></i></button></td>
+                    </tr>`
+                $(".themes .themeEl:last").before(newTr);
+                $("#newTheme").val("");
+            }
+        });
+    });
+</script>

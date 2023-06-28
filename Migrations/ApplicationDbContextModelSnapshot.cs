@@ -359,6 +359,9 @@ namespace ToyCollection.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool?>("CustomBool1")
                         .HasColumnType("bit");
 

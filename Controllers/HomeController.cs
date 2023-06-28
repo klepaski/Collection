@@ -40,35 +40,66 @@ namespace ToyCollection.Controllers
             return result;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var latest_5_items = await _db.Items
+                .AsNoTracking()
+                .OrderByDescending(i => i.CreateDate)
+                .Take(5)
+                .Include(i => i.Collection)
+                .Include(i => i.User)
+                .ToListAsync();
+            var biggest_5_collections = await _db.Collections
+                .AsNoTracking()
+                .OrderByDescending(c => c.Items.Count)
+                .Take(5)
+                .Include(c => c.User)
+                .ToListAsync();
+            var tags = await _db.Tags
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.Latest_5_tems = latest_5_items;
+            ViewBag.Biggest_5_collections = biggest_5_collections;
+            ViewBag.Tags = tags;
+            return View();
+        }
+
+        public async Task<IActionResult> Collection(string collectionId)
+        {
+            Collection collection = await _db.Collections
+                .AsNoTracking()
+                .Include(c => c.User)
+                .Include(c => c.Items)
+                .FirstAsync(c => c.Id == collectionId);
+            ViewBag.Collection = collection;
             return View();
         }
 
         public async Task<IActionResult> Item(string itemId)
         {
-            Item item = await _db.Items.FindAsync(itemId);
-            Collection collection = await _db.Collections.FindAsync(item.CollectionId);
-            Console.WriteLine(collection.Name);
-            List<Comment> comments = await _db.Comments.Where(c => c.ItemId.Equals(itemId)).Include(c => c.User).OrderBy(c => c.Date).ToListAsync();
-            List<Like> likes = await _db.Likes.Where(l => l.ItemId.Equals(itemId)).Include(l => l.User).ToListAsync();
-            Dictionary<string, string> customFields = GetCustomFields(collection);
+            Item item = await _db.Items
+                .Include(i => i.User)
+                .Include(i => i.Collection)
+                .Include(i => i.Likes)
+                .ThenInclude(l => l.User)
+                .Include(i => i.Comments.OrderBy(c => c.Date))
+                .ThenInclude(c => c.User)
+                .FirstAsync(i => i.Id == itemId);
+            Dictionary<string, string> customFields = GetCustomFields(item.Collection);
             ViewBag.Item = item;
-            ViewBag.Collection = collection;
-            ViewBag.Comments = comments;
-            ViewBag.Likes = likes;
             ViewBag.CustomFields = customFields;
             return View();
         }
 
-        public IActionResult SetLanguage(string culture, string returnUrl)
+        public IActionResult SetLanguage(string culture)
         {
             Response.Cookies.Append(
                 CookieRequestCultureProvider.DefaultCookieName,
                 CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
                 new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
             );
-            return LocalRedirect(returnUrl);
+            return Ok();
         }
 
         public IActionResult Privacy()

@@ -22,7 +22,7 @@ namespace ToyCollection.Controllers
             _userService = userService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Admin()
         {
             List<UserViewModel> users = await _userService.GetUsers();
             ViewBag.Themes = await _userService.GetThemes();
@@ -30,59 +30,52 @@ namespace ToyCollection.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTheme()
+        public async Task<IActionResult> AddTheme(string themeName)
         {
-            var theme = HttpContext.Request.Form["theme"];
-            await _userService.AddTheme(theme);
-            return RedirectPermanent("~/Admin/Index");
+            await _userService.AddTheme(themeName);
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteTheme()
+        public async Task<IActionResult> DeleteTheme(string themeName)
         {
-            var name = HttpContext.Request.Form["themeName"];
-            await _userService.DeleteTheme(name);
-            return RedirectPermanent("~/Admin/Index");
+            await _userService.DeleteTheme(themeName);
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> BlockUser()
+        public async Task<IActionResult> BlockUser(string[] ids)
         {
-            var ids = HttpContext.Request.Form["userId"];
             await _userService.BlockUsers(ids, HttpContext.User);
-            return RedirectPermanent("~/Admin/Index");
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> GrantAdmin()
+        public async Task<IActionResult> GrantAdmin(string[] ids)
         {
-            var ids = HttpContext.Request.Form["userId"];
             await _userService.GrantAdmin(ids);
-            return RedirectPermanent("~/Admin/Index");
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> RevokeAdmin()
+        public async Task<IActionResult> RevokeAdmin(string[] ids)
         {
-            var ids = HttpContext.Request.Form["userId"];
             await _userService.RevokeAdmin(ids, HttpContext.User);
-            return RedirectPermanent("~/Admin/Index");
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> UnblockUser()
+        public async Task<IActionResult> UnblockUser(string[] ids)
         {
-            var ids = HttpContext.Request.Form["userId"];
             await _userService.UnblockUsers(ids);
-            return RedirectPermanent("~/Admin/Index");
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteUser()
+        public async Task<IActionResult> DeleteUser(string[] ids)
         {
-            var ids = HttpContext.Request.Form["userId"];
             await _userService.DeleteUsers(ids, HttpContext.User);
-            return RedirectPermanent("~/Admin/Index");
+            return Ok();
         }
     }
 }

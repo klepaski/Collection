@@ -8,47 +8,50 @@ using NuGet.Packaging.Signing;
 using ToyCollection.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Azure.Core;
-using Dropbox.Api.Files;
-using Dropbox.Api;
-using static Dropbox.Api.Files.SearchMatchType;
-using static Dropbox.Api.Files.ListRevisionsMode;
+//using Azure.Core;
+//using Dropbox.Api.Files;
+//using Dropbox.Api;
+//using static Dropbox.Api.Files.SearchMatchType;
+//using static Dropbox.Api.Files.ListRevisionsMode;
 using System.Globalization;
+using NuGet.Protocol.Core.Types;
 
 namespace ToyCollection.Controllers
 {
-    [Authorize(Roles = "User")]
+    [Authorize(Roles = "User,Admin")]
     public class UserController : Controller
     {
         private readonly ILogger<UserController> _logger;
         private readonly ApplicationDbContext _db;
+        private readonly IUserService _userService;
         private readonly IDropboxService _dropboxService;
 
-        public UserController(ILogger<UserController> logger, ApplicationDbContext db, IDropboxService dropboxService)
+        public UserController(ILogger<UserController> logger, ApplicationDbContext db, IDropboxService dropboxService, IUserService userService)
         {
             _logger = logger;
             _db = db;
             _dropboxService = dropboxService;
+            _userService = userService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Collections(string userId)
         {
-            ViewBag.Themes = _db.Themes.ToList();
-            var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = _db.Users.Find(userId);
-            List<Collection> collections = _db.Collections.Where(x => x.User == user).ToList();
-            return View(collections);
+            ViewBag.Themes = await _userService.GetThemes();
+            ViewBag.User = await _db.Users.FindAsync(userId);
+            ViewBag.Collections = await _db.Collections
+                .Include(c => c.User)
+                .Where(c => c.User.Id == userId)
+                .ToListAsync();
+            return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateCollection()
         {
             var form = HttpContext.Request.Form;
-            var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _db.Users.FindAsync(userId);
             Collection? collection = new Collection()
             {
-                User = user,
+                UserId = form["UserId"],
                 Name = form["Name"],
                 Description = form["Description"],
                 Theme = form["Theme"],
@@ -70,8 +73,9 @@ namespace ToyCollection.Controllers
             };
             await _db.Collections.AddAsync(collection);
             await _db.SaveChangesAsync();
-            return RedirectPermanent("~/User/Index");
+            return RedirectPermanent("~/User/Collections?userId=" + form["UserId"]);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> EditCollection(string id, string name, string description, string theme,
@@ -82,7 +86,7 @@ namespace ToyCollection.Controllers
             string customDate1, string customDate2, string customDate3)
         {
             Collection? collection = await _db.Collections.FindAsync(id);
-            if (collection == null) return Ok();
+            if (collection == null) return NotFound();
             collection.Name = name;
             collection.Description = description;
             collection.Theme = theme;
@@ -102,18 +106,17 @@ namespace ToyCollection.Controllers
             collection.CustomDate2 = customDate2;
             collection.CustomDate3 = customDate3;
             await _db.SaveChangesAsync();
-            return RedirectPermanent("~/User/Index");
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteCollection()
+        public async Task<IActionResult> DeleteCollection(string collectionId)
         {
-            var id = HttpContext.Request.Form["collectionId"];
-            Collection? collection = await _db.Collections.FindAsync(id);
-            if (collection == null) return Ok();
+            Collection? collection = await _db.Collections.FindAsync(collectionId);
+            if (collection == null) return NotFound();
             _db.Remove(collection);
             await _db.SaveChangesAsync();
-            return RedirectPermanent("~/User/Index");
+            return Ok();
         }
 
         [HttpPost]
@@ -126,75 +129,58 @@ namespace ToyCollection.Controllers
 
         //====================== I T E M S =================================
 
-        private string[] keys = new string[] {"CustomString1", "CustomString2", "CustomString3",
-                        "CustomInt1", "CustomInt2", "CustomInt3", "CustomText1", "CustomText2", "CustomText3",
-                        "CustomBool1", "CustomBool2", "CustomBool3", "CustomDate1", "CustomDate2", "CustomDate3" };
-
-
-        //private string GetCollectionOfItem(Item? item)
-        //{
-        //    Collection? collection = _db.Collections.FirstOrDefault(x => x.Id.Equals(item.CollectionId));
-        //    if (collection == null) return "";
-        //    return collection.Id.ToString();
-        //}
-
-        private Dictionary<string, string> GetCustomFields(string id)
+        private Dictionary<string, string> GetCustomFields(Collection collection)
         {
+            List<string> customFields = new() { "CustomString1", "CustomString2", "CustomString3",
+            "CustomInt1", "CustomInt2", "CustomInt3", "CustomText1", "CustomText2", "CustomText3",
+            "CustomBool1", "CustomBool2", "CustomBool3", "CustomDate1", "CustomDate2", "CustomDate3"};
             Dictionary<string, string> result = new();
-            Collection? collection = _db.Collections.Find(id);
-            if (collection == null) return result;
-            foreach (string key in keys)
-            {
-                if (collection[key] != "" && collection[key] != null)
-                {
-                    result.Add(key, collection[key].ToString());
-                }
-            }
+            foreach(string field in customFields)
+                if (collection[field] != null && collection[field].ToString() != "")
+                    result.Add(field, collection[field].ToString());
             return result;
         }
 
         public async Task<IActionResult> Items(string collectionId)
         {
-            ViewBag.CollectionId = collectionId;
-            ViewBag.CollectionName = (await _db.Collections.FindAsync(collectionId)).Name;
-            ViewBag.Items = (_db.Items.Where(x => x.CollectionId.Equals(collectionId))).ToList();
-            ViewBag.CustomFields = GetCustomFields(collectionId);
+            Collection? collection = await _db.Collections
+                .Include(c => c.Items)
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Id == collectionId);
+            ViewBag.Collection = collection;
+            ViewBag.CustomFields = GetCustomFields(collection);
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateItem()
         {
-            Dictionary<string, string> parms = new();
             var form = HttpContext.Request.Form;
-            var collectionId = form["collectionId"];
-            var customFields = GetCustomFields(collectionId);
-            var name = form["Name"];
-
-            foreach (var field in customFields)
+            Item item = new Item()
             {
-                parms.Add(field.Key, form[field.Key]);
-            }
-
-            Item item = new Item();
-            item.Name = name;
-            var userId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            item.User = await _db.Users.FindAsync(userId);
-            item.Collection = await _db.Collections.FindAsync(collectionId);
-
-            foreach (var parm in parms)
-            {
-                item[parm.Key] = parm.Key switch
-                {
-                    string a when a.Contains("Int") => Int32.Parse(parm.Value),
-                    string b when b.Contains("Bool") => (parm.Value == "on") ? true : false,
-                    string c when c.Contains("Date") => DateTime.Parse(parm.Value),
-                    _ => parm.Value
-                };
-            }
+                Name = form["Name"],
+                CreateDate = DateTime.UtcNow,
+                CollectionId = form["collectionId"],
+                UserId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier),
+                CustomString1 = form["customString1"],
+                CustomString2 = form["customString2"],
+                CustomString3 = form["customString3"],
+                CustomInt1 = Int32.TryParse(form["customInt1"], out var tempInt1) ? tempInt1 : null,
+                CustomInt2 = Int32.TryParse(form["customInt2"], out var tempInt2) ? tempInt2 : null,
+                CustomInt3 = Int32.TryParse(form["customInt3"], out var tempInt3) ? tempInt3 : null,
+                CustomText1 = form["customText1"],
+                CustomText2 = form["customText2"],
+                CustomText3 = form["customText3"],
+                CustomBool1 = (form["customBool1"] == "on") ? true : false,
+                CustomBool2 = (form["customBool2"] == "on") ? true : false,
+                CustomBool3 = (form["customBool3"] == "on") ? true : false,
+                CustomDate1 = DateTime.TryParse(form["customDate1"], out var tempDate1) ? tempDate1 : null,
+                CustomDate2 = DateTime.TryParse(form["customDate2"], out var tempDate2) ? tempDate2 : null,
+                CustomDate3 = DateTime.TryParse(form["customDate3"], out var tempDate3) ? tempDate3 : null,
+            };
             await _db.Items.AddAsync(item);
             await _db.SaveChangesAsync();
-            return RedirectPermanent($"~/User/Items?collectionId={collectionId}");
+            return RedirectPermanent($"~/User/Items?collectionId={form["collectionId"]}");
         }
 
         [HttpPost]
@@ -206,7 +192,7 @@ namespace ToyCollection.Controllers
             string? customDate1, string? customDate2, string? customDate3)
         {
             Item? item = await _db.Items.FindAsync(id);
-            if (item == null) return Ok();
+            if (item == null) return NotFound();
             item.Name = name;
             if (customString1 != null) item.CustomString1 = customString1;
             if (customString2 != null) item.CustomString2 = customString2;
@@ -224,22 +210,22 @@ namespace ToyCollection.Controllers
             if (customDate2 != null) item.CustomDate2 = DateTime.Parse(customDate2);
             if (customDate3 != null) item.CustomDate3 = DateTime.Parse(customDate3);
             await _db.SaveChangesAsync();
-            return RedirectPermanent($"~/User/Items?collectionId={item.CollectionId}");
+            return Ok();
         }
         
 
         [HttpPost]
-        public async Task<IActionResult> DeleteItem()
+        public async Task<IActionResult> DeleteItem(string itemId)
         {
-            var itemId = HttpContext.Request.Form["itemId"];
             Item? item = await _db.Items.FindAsync(itemId);
-            if (item == null) return Ok();
+            if (item == null) return NotFound();
             _db.Remove(item);
             await _db.SaveChangesAsync();
-            return RedirectPermanent($"~/User/Items?collectionId={item.CollectionId}");
+            return Ok();
         }
 
         //==========================================
+
         [HttpPost]
         public async Task<IActionResult> CreateComment(string? itemId, string? userId, string text, string date)
         {
@@ -260,7 +246,7 @@ namespace ToyCollection.Controllers
         [HttpPost]
         public async Task<IActionResult> LikeItem(string? itemId, string? userId)
         {
-            if (await _db.Likes.FindAsync(itemId, userId) != null) return Ok();    //complicated key!!
+            if (await _db.Likes.FindAsync(itemId, userId) != null) return Ok();
             Like newLike = new Like() { ItemId = itemId, UserId = userId };
             await _db.Likes.AddAsync(newLike);
             await _db.SaveChangesAsync();
@@ -270,8 +256,8 @@ namespace ToyCollection.Controllers
         [HttpPost]
         public async Task<IActionResult> DislikeItem(string? itemId, string? userId)
         {
-            Like? likeToDelete = await _db.Likes.FindAsync(itemId, userId);    //complicated key!!
-            if (likeToDelete == null) return Ok();
+            Like? likeToDelete = await _db.Likes.FindAsync(itemId, userId);
+            if (likeToDelete == null) return NotFound();
             _db.Remove(likeToDelete);
             await _db.SaveChangesAsync();
             return Ok();

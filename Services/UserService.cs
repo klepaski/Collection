@@ -46,7 +46,15 @@ namespace ToyCollection.Services
 
         public async Task<List<Theme>> GetThemes()
         {
-            return await _db.Themes.ToListAsync();
+            List<Theme> themes = await _db.Themes.ToListAsync();
+            var other = await _db.Themes.FindAsync("Others");
+            if (other != null)
+            {
+                themes.Remove(other);
+                themes.Add(other);
+                await _db.SaveChangesAsync();
+            }
+            return themes;
         }
 
         public async Task AddTheme(string name)
