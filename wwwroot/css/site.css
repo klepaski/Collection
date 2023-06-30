@@ -164,3 +164,20 @@ body {
 a {
     text-decoration: none;
 }
+
+.tagBorder {
+    background: rgba(0, 0, 0, 0.6);
+    margin-right: 5px;
+    padding: 1px 5px 2px 5px;
+    border-radius: 10px;
+}
+    .tagBorder a {
+        color: white;
+    }
+    .tagBorder a:hover {
+        color: lightgreen;
+    }
+
+.searchResult {
+    margin-bottom: 30px;
+}

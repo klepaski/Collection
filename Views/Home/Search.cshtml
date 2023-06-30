@@ -1,0 +1,48 @@
+﻿@{
+    List<Collection> collectionResults = ViewBag.CollectionResults;
+    List<Item> itemResults = ViewBag.ItemResults;
+    ViewData["Title"] = @l["SearchPage"];
+}
+
+@if(collectionResults.Count > 0)
+{
+    <h2>@l["MatchingCollections"]:</h2>
+    <hr/>
+    @foreach (var collection in collectionResults)
+    {
+        <div class="searchResult">
+            <h5><a href="/Home/Collection?collectionId=@collection.Id">@collection.Name</a><br /></h5>
+            <h7>
+                <b>@l["Theme"]: </b>@collection.Theme<br />
+                <b>@l["Description"]: </b>@collection.Description
+            </h7>
+        </div>
+    }
+}
+@if(itemResults.Count > 0)
+{
+    <h2>@l["MatchingItems"]:</h2>
+    <hr />
+    @foreach (var item in itemResults)
+    {
+        <div class="searchResult">
+            <h5><a href="/Home/Item?itemId=@item.Id">@item.Name</a><br /></h5>
+            <h7>
+                <b>@l["Collection"]: </b>@item.Collection.Name<br />
+                <b>@l["Tags"]: </b>
+                    @foreach (var tag in item.Tags)
+                    {
+                        <span class="tagBorder">
+                            <a href="/Home/Search?searchString=@tag.Name">@tag.Name</a>
+                        </span>
+                    }
+                    <br />
+                <i class="fa fa-calendar-check-o"></i> @item.CreateDate
+            </h7>
+        </div>
+    }
+}
+@if (itemResults.Count == 0 && collectionResults.Count == 0)
+{
+    <h2>@l["NoMatchingResults"]</h2>
+}

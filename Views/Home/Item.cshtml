@@ -14,7 +14,7 @@
             break;
         }
     };
-    ViewData["Title"] = l["Item"] + $" {item.Name}";
+    ViewData["Title"] = @l["Item"];
 }
 
 <h1>@l["Item"] @item.Name</h1>
@@ -37,8 +37,15 @@
             </tr>
             <tr>
                 <td class="field">@l["Tags"] </td>
-                <td class="fvalue">@item.Tags</td>
-            </tr>@*ДОБАВИТЬ ТЭГИ*@
+                <td class="fvalue">
+                    @foreach (var tag in item.Tags)
+                    {
+                        <span class="tagBorder">
+                            <a href="/Home/Search?searchString=@tag.Name">@tag.Name</a>
+                        </span>
+                    }
+                </td>
+            </tr>
             @foreach (var field in customFields)
             {
                 <tr>
@@ -47,7 +54,7 @@
                 </tr>
             }
             <tr>
-                <td class="field">@l["Owner"]: </td>
+                <td class="field">@l["Owner"] </td>
                 <td class="fvalue">@item.User.UserName</td>
             </tr>
             <tr>

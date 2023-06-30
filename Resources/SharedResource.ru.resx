@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="5BiggestCollections" xml:space="preserve">
+    <value>5 самых больших коллекций</value>
+  </data>
+  <data name="5LastAddedItems" xml:space="preserve">
+    <value>5 самых новых элементов коллекций</value>
+  </data>
   <data name="Actions" xml:space="preserve">
     <value>Действия</value>
   </data>
@@ -213,6 +219,12 @@
   <data name="Logout" xml:space="preserve">
     <value>Выйти</value>
   </data>
+  <data name="MatchingCollections" xml:space="preserve">
+    <value>Подходящие коллекции</value>
+  </data>
+  <data name="MatchingItems" xml:space="preserve">
+    <value>Подходящие элементы коллекций</value>
+  </data>
   <data name="MustLogin" xml:space="preserve">
     <value>Для этого действия вы должны быть авторизованы</value>
   </data>
@@ -237,6 +249,12 @@
   </data>
   <data name="NoItems" xml:space="preserve">
     <value>Вы еще не создали ни одного элемента коллекции</value>
+  </data>
+  <data name="NoMatchingResults" xml:space="preserve">
+    <value>Нет подходящих результатов</value>
+  </data>
+  <data name="NoTags" xml:space="preserve">
+    <value>Тэгов пока нет</value>
   </data>
   <data name="NoThemes" xml:space="preserve">
     <value>Темы отсутствуют</value>
@@ -276,6 +294,9 @@
   </data>
   <data name="Search" xml:space="preserve">
     <value>Поиск...</value>
+  </data>
+  <data name="SearchPage" xml:space="preserve">
+    <value>Страница поиска</value>
   </data>
   <data name="Status" xml:space="preserve">
     <value>Статус</value>

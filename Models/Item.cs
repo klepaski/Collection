@@ -16,7 +16,7 @@ namespace ToyCollection.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         public string Name { get; set; }
-        public DateTime CreateDate { get; set; }    //
+        public DateTime CreateDate { get; set; }
 
         public string CollectionId { get; set; }
         public Collection Collection { get; set; }
@@ -24,7 +24,7 @@ namespace ToyCollection.Models
         public string UserId { get; set; }
         public UserModel User { get; set; }
 
-        public List<Tag> Tags { get; set; } = new();
+        public List<Tag> Tags { get; set; } = new();            //
         public List<Comment>? Comments { get; set; } = new();
         public List<Like>? Likes { get; set; } = new();
 

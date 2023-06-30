@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Localization;
+using NuGet.Packaging;
 
 namespace ToyCollection.Controllers
 {
@@ -48,6 +49,7 @@ namespace ToyCollection.Controllers
                 .Take(5)
                 .Include(i => i.Collection)
                 .Include(i => i.User)
+                .Include(i => i.Tags)
                 .ToListAsync();
             var biggest_5_collections = await _db.Collections
                 .AsNoTracking()
@@ -62,6 +64,36 @@ namespace ToyCollection.Controllers
             ViewBag.Latest_5_tems = latest_5_items;
             ViewBag.Biggest_5_collections = biggest_5_collections;
             ViewBag.Tags = tags;
+            return View();
+        }
+
+        public async Task<IActionResult> Search(string searchString)
+        {
+            searchString = "\"*" + searchString + "*\"";
+            Console.WriteLine(searchString);
+
+            List<Collection> collectionResults = await _db.Collections
+                .Where(c => EF.Functions.Contains(c.Name, searchString) ||
+                            EF.Functions.Contains(c.Description, searchString) ||
+                            EF.Functions.Contains(c.Theme, searchString))
+                .ToListAsync();
+
+            List<Item> itemResults = await _db.Items
+                .Include(i => i.Tags)
+                .Include(i => i.Collection)
+                .Where(i => EF.Functions.Contains(i.Name, searchString) ||
+                            EF.Functions.Contains(i.CustomString1, searchString) ||
+                            EF.Functions.Contains(i.CustomString2, searchString) ||
+                            EF.Functions.Contains(i.CustomString3, searchString) ||
+                            EF.Functions.Contains(i.CustomText1, searchString) ||
+                            EF.Functions.Contains(i.CustomText2, searchString) ||
+                            EF.Functions.Contains(i.CustomText3, searchString) ||
+                        i.Comments.Any(c => EF.Functions.Contains(c.Text, searchString)) ||
+                        i.Tags.Any(t => EF.Functions.Contains(t.Name, searchString)))
+                .ToListAsync();
+
+            ViewBag.CollectionResults = collectionResults;
+            ViewBag.ItemResults = itemResults;
             return View();
         }
 
@@ -85,6 +117,7 @@ namespace ToyCollection.Controllers
                 .ThenInclude(l => l.User)
                 .Include(i => i.Comments.OrderBy(c => c.Date))
                 .ThenInclude(c => c.User)
+                .Include(i => i.Tags)
                 .FirstAsync(i => i.Id == itemId);
             Dictionary<string, string> customFields = GetCustomFields(item.Collection);
             ViewBag.Item = item;

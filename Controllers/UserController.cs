@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 //using static Dropbox.Api.Files.ListRevisionsMode;
 using System.Globalization;
 using NuGet.Protocol.Core.Types;
+using Dropbox.Api.Files;
+using Tag = ToyCollection.Models.Tag;
 
 namespace ToyCollection.Controllers
 {
@@ -145,10 +147,12 @@ namespace ToyCollection.Controllers
         {
             Collection? collection = await _db.Collections
                 .Include(c => c.Items)
+                .ThenInclude(i => i.Tags)
                 .Include(c => c.User)
                 .FirstOrDefaultAsync(c => c.Id == collectionId);
             ViewBag.Collection = collection;
             ViewBag.CustomFields = GetCustomFields(collection);
+            ViewBag.Tags = await _db.Tags.ToListAsync();
             return View();
         }
 
@@ -156,9 +160,21 @@ namespace ToyCollection.Controllers
         public async Task<IActionResult> CreateItem()
         {
             var form = HttpContext.Request.Form;
+            List<Tag> tags = new();
+            foreach (string tag in form["Tags"].ToString().Split(", "))
+            {
+                Tag? newTag = await _db.Tags.FindAsync(tag);
+                if (newTag == null)
+                {
+                    newTag = new Tag() { Name = tag };
+                    await _db.Tags.AddAsync(newTag);
+                }
+                tags.Add(newTag);
+            }
             Item item = new Item()
             {
                 Name = form["Name"],
+                Tags = tags,
                 CreateDate = DateTime.UtcNow,
                 CollectionId = form["collectionId"],
                 UserId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier),
@@ -191,9 +207,20 @@ namespace ToyCollection.Controllers
             string? customBool1, string? customBool2, string? customBool3,
             string? customDate1, string? customDate2, string? customDate3)
         {
-            Item? item = await _db.Items.FindAsync(id);
+            Item? item = await _db.Items.Include(i => i.Tags).FirstOrDefaultAsync(i => i.Id == id);
             if (item == null) return NotFound();
             item.Name = name;
+            item.Tags.Clear();
+            foreach (string tag in tags.Split(", "))
+            {
+                Tag? newTag = await _db.Tags.FindAsync(tag);
+                if (newTag == null)
+                {
+                    newTag = new Tag() { Name = tag };
+                    await _db.Tags.AddAsync(newTag);
+                }
+                item.Tags.Add(newTag);
+            }
             if (customString1 != null) item.CustomString1 = customString1;
             if (customString2 != null) item.CustomString2 = customString2;
             if (customString3 != null) item.CustomString3 = customString3;

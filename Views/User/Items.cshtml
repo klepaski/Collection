@@ -1,7 +1,9 @@
 ﻿@{
     Collection? collection = ViewBag.Collection;
     Dictionary<string, string> customFields = ViewBag.CustomFields;
+    List<Tag> tags = ViewBag.Tags;
     ViewData["Title"] = l["MyItems"];
+    var allTags = string.Join(", ", tags.Select(tag => tag.Name));
 }
 
 <h1>@l["ItemsFromCollection"] <a href="/User/Collections?userId=@collection.User.Id">@collection.Name</a></h1>
@@ -34,8 +36,19 @@
                             <input type="text" class="ans form-coll" value="@item.Name" style="display:none;" />
                         </td>
                         <td>
-                            <span class="editable">@item.Tags</span>
-                            <textarea type="text" class="ans text-coll" style="display:none;">@item.Tags</textarea>
+                            @{var itemTags = string.Join(", ", item.Tags.Select(tag => tag.Name));}
+                            <span class="editable">@itemTags</span>
+
+                            <input type="hidden" value="@allTags" id="allTags" />
+                            @*<input list="tag" placeholder="Tags" id="tags" class="form-w ans" style="display:none;" value="@item.Tags" />*@
+
+                            <textarea placeholder="Tags" id="tags" class="text-coll ans" style="display:none;">@itemTags</textarea>
+                            @*<datalist id="tag" class="form-w ans" style="display:none;" >
+                            @foreach (var tag in tags)
+                            {
+                                <option value="@tag.Name"></option>
+                            }
+                            </datalist>*@
                         </td>
 
                         @foreach (var field in customFields)
@@ -90,7 +103,16 @@
             <form asp-controller="User">
             <input type="hidden" name="collectionId" value="@collection.Id" />
             <td><input type="text" name="Name" placeholder="Name" class="form-coll" required /></td>
-            <td><textarea type="text" name="Tags" placeholder="Tags" class="text-coll" required></textarea></td>
+            <td>
+                <textarea id="tagsInput" name="Tags" rows="4" placeholder="Tags" class="text-coll" required></textarea>
+                @*<input id="newTagInput" list="newTag" placeholder="Tags" name="Tags" class="form-w" required />
+                <datalist id="newTag" class="form-w">
+                        @foreach (var tag in tags)
+                        {
+                        <option value=@tag.Name></option>
+                        }
+                </datalist>*@
+            </td>
 
                 @foreach (var field in customFields)
                 {
@@ -125,6 +147,44 @@
 
 
 <script>
+    //$(document).ready(function(){
+    //    $('.table').on('input', '#tagsInput', function () {
+    //        var tags = $('#allTags').val().split(', ');
+    //        var input = $(this).val();
+    //        var lastCommaIndex = input.lastIndexOf(',');
+
+    //        if (lastCommaIndex !== -1) {
+    //            input = input.substring(lastCommaIndex + 1).trim();
+    //        }
+
+    //        var matchingTags = tags.filter(function (tag) {
+    //            return tag.toLowerCase().startsWith(input.toLowerCase());
+    //        });
+
+    //        if (matchingTags.length > 0) {
+    //            var suggestions = matchingTags.map(function (tag) {
+    //                return tag;
+    //            }).join(', ');
+
+    //            $(this).autocomplete({
+    //                source: matchingTags,
+    //                select: function (event, ui) {
+    //                    $(this).val(input + ', ' + ui.item.value);
+    //                    return false;
+    //                }
+    //            }).autocomplete("instance")._renderMenu = function (ul, items) {
+    //                var that = this;
+    //                $.each(items, function (index, item) {
+    //                    that._renderItemData(ul, item);
+    //                });
+    //            };
+    //            $(this).autocomplete("search", input);
+    //        } else {
+    //            $(this).autocomplete("destroy");
+    //        }
+    //    });
+    //});
+
     $('.table').on('click', '.edit-item', function () {
         var row = $(this).closest('tr');
         row.find('.editable').hide();
@@ -138,7 +198,9 @@
         var row = $(this).closest('tr');
         var itemId = row.find('input[name="itemId"]').val();
         var name = row.find('input:eq(0)').val();
-        var tags = row.find('textarea').val();//
+        var tags = row.find('#tags').val();// 
+        console.log(tags);
+
         var customString1 = row.find('#CustomString1').val();
         var customString2 = row.find('#CustomString2').val();
         var customString3 = row.find('#CustomString3').val();
@@ -180,7 +242,7 @@
             },
             success: function () {
                 row.find('.editable:eq(0)').text(name);
-                //tags
+                row.find('.editable:eq(1)').text(tags);//tags
                 row.find('.CustomString1').text(customString1);
                 row.find('.CustomString2').text(customString2);
                 row.find('.CustomString3').text(customString3)               

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddSignalR();
 builder.Services.AddSignalR(opts =>
 {
     opts.ClientTimeoutInterval = TimeSpan.FromMinutes(10);

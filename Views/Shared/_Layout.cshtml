@@ -46,6 +46,10 @@
                             </li>
                         }
                     </ul>
+
+                    <input placeholder=@l["Search"] id="search" />
+                    <button type="button" id="searchButton" class="btn btn-success"><i class="fa fa-search"></i></button>
+
                     <partial name="_LoginPartial" />
                 </div>
             </div>
@@ -65,6 +69,11 @@
 </html>
 
 <script>
+    $('#searchButton').click(function () {
+        var searchString = $('#search').val();
+        window.location.href = `/Home/Search?searchString=${searchString}`;
+    });
+
     $(document).ready(function () {
         var theme = getCookie("theme");
         if (theme) setTheme(theme);
