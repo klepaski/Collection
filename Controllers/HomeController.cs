@@ -79,8 +79,6 @@ namespace ToyCollection.Controllers
         public async Task<IActionResult> Search(string searchString)
         {
             searchString = "\"*" + searchString + "*\"";
-            Console.WriteLine(searchString);
-
             List<Collection> collectionResults = await _db.Collections
                 .Where(c => EF.Functions.Contains(c.Name, searchString) ||
                             EF.Functions.Contains(c.Description, searchString) ||
@@ -100,7 +98,6 @@ namespace ToyCollection.Controllers
                         i.Comments.Any(c => EF.Functions.Contains(c.Text, searchString)) ||
                         i.Tags.Any(t => EF.Functions.Contains(t.Name, searchString)))
                 .ToListAsync();
-
             ViewBag.CollectionResults = collectionResults;
             ViewBag.ItemResults = itemResults;
             return View();
