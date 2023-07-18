@@ -1,6 +1,6 @@
 ﻿@{
-    List<Item> latest_5_items = ViewBag.Latest_5_tems;
-    List<Collection> biggest_5_collections = ViewBag.Biggest_5_collections;
+    List<Item> latest_5_items = ViewBag.Latest_5_Items;
+    List<Collection> biggest_5_collections = ViewBag.Biggest_5_Collections;
     List<Tag> tags = ViewBag.Tags;
     ViewData["Title"] = @l["HomePage"];
 }
@@ -16,7 +16,7 @@
                     <h5>@item.Name</h5>
                 </a>
                 <h7>
-                    <b>@l["Collection"]: </b><a href="/Home/Collection?collectionId=@item.CollectionId">@item.Collection.Name</a><br />
+                    <b>@l["Collection"]: </b><a href="/Home/Collection?collectionId=@item.Collection.Id">@item.Collection.Name</a><br />
                     <b>@l["Owner"]: </b>@item.User.UserName<br />
                     <b>@l["Tags"]: </b>
                     @foreach (var tag in item.Tags)

@@ -38,17 +38,15 @@
                         <td>
                             @{var itemTags = string.Join(", ", item.Tags.Select(tag => tag.Name));}
                             <span class="editable">@itemTags</span>
-
                             <input type="hidden" value="@allTags" id="allTags" />
-                            @*<input list="tag" placeholder="Tags" id="tags" class="form-w ans" style="display:none;" value="@item.Tags" />*@
-
-                            <textarea placeholder="Tags" id="tags" class="text-coll ans" style="display:none;">@itemTags</textarea>
-                            @*<datalist id="tag" class="form-w ans" style="display:none;" >
+                            @*<textarea placeholder="Tags" id="tags" class="text-coll ans" style="display:none;">@itemTags</textarea>*@
+                        <input list="tag" placeholder="Tags" id="tags" class="text-coll ans" style="display:none;word-break:break-word;" value="@itemTags" />
+                            <datalist id="tag" class="form-w ans" style="display:none;" >
                             @foreach (var tag in tags)
                             {
                                 <option value="@tag.Name"></option>
                             }
-                            </datalist>*@
+                            </datalist>
                         </td>
 
                         @foreach (var field in customFields)
@@ -104,14 +102,14 @@
             <input type="hidden" name="collectionId" value="@collection.Id" />
             <td><input type="text" name="Name" placeholder="Name" class="form-coll" required /></td>
             <td>
-                <textarea id="tagsInput" name="Tags" rows="4" placeholder="Tags" class="text-coll" required></textarea>
-                @*<input id="newTagInput" list="newTag" placeholder="Tags" name="Tags" class="form-w" required />
+                @*<textarea id="tagsInput" name="Tags" rows="4" placeholder="Tags" class="text-coll" required></textarea>*@
+                <input id="newTagInput" list="newTag" placeholder="Tags" name="Tags" class="text-coll" style="word-break:break-word;" required />
                 <datalist id="newTag" class="form-w">
                         @foreach (var tag in tags)
                         {
                         <option value=@tag.Name></option>
                         }
-                </datalist>*@
+                </datalist>
             </td>
 
                 @foreach (var field in customFields)

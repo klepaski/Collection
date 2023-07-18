@@ -43,27 +43,36 @@ namespace ToyCollection.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var latest_5_items = await _db.Items
+            ViewBag.Latest_5_Items = await _db.Items
                 .AsNoTracking()
                 .OrderByDescending(i => i.CreateDate)
                 .Take(5)
-                .Include(i => i.Collection)
-                .Include(i => i.User)
-                .Include(i => i.Tags)
-                .ToListAsync();
-            var biggest_5_collections = await _db.Collections
+                .Select(i => new Item
+                {
+                    Id = i.Id,
+                    Name = i.Name,
+                    Collection = new Collection { Id = i.CollectionId, Name = i.Collection.Name },
+                    User = new UserModel { UserName = i.User.UserName },
+                    Tags = i.Tags.ToList()
+                }).ToListAsync();
+
+            ViewBag.Biggest_5_Collections = await _db.Collections
                 .AsNoTracking()
                 .OrderByDescending(c => c.Items.Count)
                 .Take(5)
-                .Include(c => c.User)
-                .ToListAsync();
-            var tags = await _db.Tags
+                .Select(c => new Collection
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Theme = c.Theme,
+                    User = new UserModel { UserName = c.User.UserName },
+                    ImageUrl = c.ImageUrl,
+                    Description = c.Description
+                }).ToListAsync();
+
+            ViewBag.Tags = await _db.Tags
                 .AsNoTracking()
                 .ToListAsync();
-
-            ViewBag.Latest_5_tems = latest_5_items;
-            ViewBag.Biggest_5_collections = biggest_5_collections;
-            ViewBag.Tags = tags;
             return View();
         }
 
@@ -114,9 +123,9 @@ namespace ToyCollection.Controllers
                 .Include(i => i.User)
                 .Include(i => i.Collection)
                 .Include(i => i.Likes)
-                .ThenInclude(l => l.User)
+                    .ThenInclude(l => l.User)
                 .Include(i => i.Comments.OrderBy(c => c.Date))
-                .ThenInclude(c => c.User)
+                    .ThenInclude(c => c.User)
                 .Include(i => i.Tags)
                 .FirstAsync(i => i.Id == itemId);
             Dictionary<string, string> customFields = GetCustomFields(item.Collection);
